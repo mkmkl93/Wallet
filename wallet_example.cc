@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <iostream>
+#include <exception>
 
 static const uint UNITS_IN_B = 100000000;
 
