@@ -5,19 +5,6 @@
 #include <chrono>
 //ullong czy llong
 
-struct NotEnoughCoins : public std::exception
-{
-	const char * what () const throw (){
-    	return "NotEnoughCoins";
-    }
-};
-
-struct NegativeBankBalance : public std::exception
-{
-	const char * what () const throw (){
-    	return "NegativeBankBalance";
-    }
-};
 
 class Wallet{
     public:

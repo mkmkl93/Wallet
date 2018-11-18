@@ -5,6 +5,46 @@
 #include <chrono>
 #include "wallet.h"
 
+struct NotEnoughCoins : public std::exception
+{
+	const char * what () const throw (){
+    	return "NotEnoughCoins";
+    }
+};
+
+struct NegativeBankBalance : public std::exception
+{
+	const char * what () const throw (){
+    	return "NegativeBankBalance";
+    }
+};
+
+class Operation{
+        std::chrono::milliseconds ms;
+
+        std::string name;
+
+        friend bool operator<(const Operation &lhs, const Operation &rhs);
+
+        Operation(std::chrono::milliseconds ms, std::string s);
+};
+
+class History
+{
+    std::vector<Operation> Operations;
+
+    void NewEvent(std::string event);
+
+    History& operator+=(const History &rhs);
+
+    unsigned int OperationsSize();
+
+    void clear();
+
+    void sort();
+};
+
+
 Wallet::coins_t Wallet::LeftCoins = 2'100'000 * UNITS;
 
 std::chrono::high_resolution_clock::time_point Wallet::TimeStart = std::chrono::high_resolution_clock::now();
