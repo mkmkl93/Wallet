@@ -6,89 +6,102 @@
 //ullong czy llong
 
 
-class Wallet{
-    public:
-        // czy da sie to dac jako private?
-        class History
-        {
-            public:
-                class Operation{
-                    private:
+class Wallet {
+  typedef long long coins_t;
 
-                        std::chrono::milliseconds ms;
+  public:
+    // czy da sie to dac jako private?
+    class History {
+      public:
+        class Operation {
+          private:
 
-                        std::string name;
+            std::chrono::milliseconds ms;
+            coins_t coinsAfterOp;
+            std::string name;
 
-                        friend bool operator<(const Operation &lhs, const Operation &rhs);
+          public:
 
-                    public:
+            Operation(std::chrono::milliseconds ms, std::string s);
+            Operation() = delete;
+            Operation(const Operation&) = delete;
+            Operation(Operation &&) = delete;
 
-                        Operation(std::chrono::milliseconds ms, std::string s);
-                };
-            private:
+            coins_t getUnits() const;
 
-                std::vector<Operation> Operations;
-
-            public:
-                void NewEvent(std::string event);
-
-                History& operator+=(const History &rhs);
-
-                unsigned int OperationsSize();
-
-                void clear();
-
-                void sort();
+            friend bool operator<(const Operation &lhs, const Operation &rhs);
+            friend bool operator>(const Operation &lhs, const Operation &rhs);
+            friend bool operator<=(const Operation &lhs, const Operation &rhs);
+            friend bool operator>=(const Operation &lhs, const Operation &rhs);
+            friend bool operator==(const Operation &lhs, const Operation &rhs);
+            friend bool operator!=(const Operation &lhs, const Operation &rhs);
+            friend std::ostream& operator<<(std::ostream &output, const Operation &op);
         };
+
+      private:
+
+        std::vector<Operation> Operations;
+
+      public:
+        void NewEvent(std::string event);
+
+        History &operator+=(const History &rhs);
+
+        unsigned int OperationsSize();
+
+        void clear();
+
+        void sort();
+    };
     //TODO
 //    private:
 
-        typedef long long coins_t;
-        const static coins_t UNITS = 1000'000'00;
-        static std::chrono::high_resolution_clock::time_point TimeStart;
+    const static coins_t UNITS = 1000'000'00;
+    static std::chrono::high_resolution_clock::time_point TimeStart;
 
-        static coins_t LeftCoins;
+    static coins_t LeftCoins;
 
-        History HistoryOfOperations;
-        coins_t coins = 0;
+    History HistoryOfOperations;
+    coins_t coins = 0;
 
-        void EnoughCoins(coins_t coins);
-        coins_t StringToCoins(std::string str);
+    void EnoughCoins(coins_t coins);
+
+    coins_t StringToCoins(std::string str);
 
 
 //    public:
 
-        Wallet();
+    Wallet();
 
-        Wallet(std::string str);
+    Wallet(std::string str);
 
-        Wallet(coins_t coins);
+    Wallet(coins_t coins);
 
-        Wallet(const Wallet&) = default;
+    Wallet(const Wallet &) = default;
 
-        Wallet(Wallet &&w);
+    Wallet(Wallet &&w);
 
-        Wallet(Wallet &&w1, Wallet &&w2);
+    Wallet(Wallet &&w1, Wallet &&w2);
 
-        ~Wallet();
+    ~Wallet();
 
-        Wallet fromBinary(std::string str);
+    Wallet fromBinary(std::string str);
 
-        coins_t getUnits();
+    coins_t getUnits();
 
-        unsigned int opSize();
+    unsigned int opSize();
 
-        coins_t getCoins();
+    coins_t getCoins();
 
-        Wallet& operator=(Wallet&& other);
+    Wallet &operator=(Wallet &&other);
 
-        friend Wallet operator+(Wallet&& lhs, Wallet rhs);
+    friend Wallet operator+(Wallet &&lhs, Wallet rhs);
 
-        friend Wallet operator-(Wallet&& lhs, Wallet rhs);
+    friend Wallet operator-(Wallet &&lhs, Wallet rhs);
 
-        friend Wallet operator*(coins_t lhs, Wallet rhs);
+    friend Wallet operator*(coins_t lhs, Wallet rhs);
 
-        friend Wallet operator*(Wallet lhs, int rhs);
+    friend Wallet operator*(Wallet lhs, int rhs);
 
 };
 

@@ -142,6 +142,10 @@ Wallet::coins_t Wallet::getUnits(){
     return Wallet::coins;
 }
 
+Wallet::coins_t Wallet::History::Operation::getUnits() const {
+    return coinsAfterOp;
+}
+
 unsigned int Wallet::opSize(){
     return HistoryOfOperations.OperationsSize();
 }
@@ -216,9 +220,31 @@ Wallet operator-(Wallet&& lhs, Wallet rhs)
 }
 
 bool operator<(const Wallet::History::Operation &lhs, const Wallet::History::Operation &rhs){
-    if(lhs.ms == rhs.ms)
-        return lhs.name < rhs.name;
     return lhs.ms < rhs.ms;
+}
+
+bool operator>(const Wallet::History::Operation &lhs, const Wallet::History::Operation &rhs) {
+    return lhs.ms > rhs.ms;
+}
+
+bool operator<=(const Wallet::History::Operation &lhs, const Wallet::History::Operation &rhs) {
+    return lhs.ms <= rhs.ms;
+}
+
+bool operator>=(const Wallet::History::Operation &lhs, const Wallet::History::Operation &rhs) {
+    return lhs.ms >= rhs.ms;
+}
+
+bool operator==(const Wallet::History::Operation &lhs, const Wallet::History::Operation &rhs) {
+    return lhs.ms == rhs.ms;
+}
+
+bool operator!=(const Wallet::History::Operation &lhs, const Wallet::History::Operation &rhs) {
+    return lhs.ms != rhs.ms;
+}
+
+std::ostream &operator<<(std::ostream &output, const Wallet::History::Operation &op) {
+    //TODO
 }
 
 void Wallet::History::sort()
