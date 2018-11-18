@@ -3,6 +3,10 @@
 #include <cassert>
 #include <iostream>
 #include <exception>
+#include <chrono>
+#include <vector>
+#include <numeric>
+#include <chrono>
 
 //static const uint UNITS_IN_B = 100000000;
 
@@ -13,15 +17,23 @@ int main() {
 //    w1 = Wallet(1); // OK
 //    w1 = w2; // błąd kompilacji
 //
-    Wallet w1(1), w2(2);
+//    Wallet w1(1);
+//    std::chrono::high_resolution_clock::time_point before = std::chrono::high_resolution_clock::now();
+//    std::vector<int> v;
+//    for(int i=0;i<1000;i++){
+//        v.emplace_back(i);
+//    }
+//    std::chrono::high_resolution_clock::time_point Now = std::chrono::high_resolution_clock::now();
+//    std::chrono::nanoseconds time = std::chrono::duration_cast<std::chrono::milliseconds>(Now - Wallet::TimeStart);
+//    std::cout<<time.count()<<"\n";
 //    Wallet suma1 = w1 + Wallet(1); // błąd kompilacji
-    Wallet suma2 = Wallet(2) + w2; // OK, w w2 jest 0 B po operacji
+//    Wallet suma2 = Wallet(2) + w2; // OK, w w2 jest 0 B po operacji
                                    // i jeden nowy wpis w historii,
                                    // a w suma2 jest w2.getUnits() + 2 B.
                                    // Historia operacji powstałego obiektu
                                    // zależy od implementacji.
 //    Wallet suma3 = suma1 + suma2;  // błąd kompilacji
-    Wallet suma4 = Wallet(1) + Wallet(2);  // OK, suma4 ma dwa wpisy
+//    Wallet suma4 = Wallet(1) + Wallet(2);  // OK, suma4 ma dwa wpisy
                                            // w historii i 3 B
 //    assert(Empty() == 0);
 //    assert(Empty() < Wallet(1));
