@@ -28,6 +28,7 @@ class Operation{
         std::string name;
 //    public:
         Operation(time_t t, std::string s);
+        friend bool operator<(const Operation &lhs, const Operation &rhs);
 };
 
 class History
@@ -39,6 +40,8 @@ class History
 
 //    public:
         void NewEvent(std::string event);
+        History& operator+=(const History &rhs);
+        void sort();
 };
 
 class Wallet{
@@ -66,11 +69,13 @@ class Wallet{
 
         Wallet(coins_t coins);
 
+        Wallet(const Wallet&) = default;
+
         Wallet(Wallet &&w);
 
         Wallet(Wallet &&w1, Wallet &&w2);
 
-        Wallet(const Wallet&);
+//        Wallet(const Wallet&);
 
         Wallet fromBinary(std::string str);
 
@@ -80,8 +85,9 @@ class Wallet{
 
         coins_t getCoins();
 
-        Wallet& operator=(const Wallet& other); // copy assignment
+        Wallet& operator=(Wallet&& other);
 
+        friend Wallet operator+(Wallet&& lhs, Wallet rhs);
 
 };
 

@@ -4,14 +4,25 @@
 #include <iostream>
 #include <exception>
 
-static const uint UNITS_IN_B = 100000000;
+//static const uint UNITS_IN_B = 100000000;
 
 using std::move;
 
 int main() {
-    short i =1;
-
-    Wallet pom{i};
+//        Wallet w1, w2;
+//    w1 = Wallet(1); // OK
+//    w1 = w2; // błąd kompilacji
+//
+    Wallet w1(1), w2(2);
+//    Wallet suma1 = w1 + Wallet(1); // błąd kompilacji
+    Wallet suma2 = Wallet(2) + w2; // OK, w w2 jest 0 B po operacji
+                                   // i jeden nowy wpis w historii,
+                                   // a w suma2 jest w2.getUnits() + 2 B.
+                                   // Historia operacji powstałego obiektu
+                                   // zależy od implementacji.
+//    Wallet suma3 = suma1 + suma2;  // błąd kompilacji
+    Wallet suma4 = Wallet(1) + Wallet(2);  // OK, suma4 ma dwa wpisy
+                                           // w historii i 3 B
 //    assert(Empty() == 0);
 //    assert(Empty() < Wallet(1));
 //    assert(Empty().getUnits() == 0);

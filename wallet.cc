@@ -1,5 +1,7 @@
 #include <iostream>
 #include <ctime>
+#include <typeinfo>
+#include <algorithm>
 #include "wallet.h"
 
 Wallet::coins_t Wallet::LeftCoins = 2'100'000 * UNITS;
@@ -45,14 +47,15 @@ Wallet::Wallet(std::string str){
 }
 
 Wallet::Wallet(coins_t coins){
+
     try{
-        EnoughCoins(coins);
+        EnoughCoins(coins * UNITS);
     }catch(NotEnoughCoins &e){
         throw(NotEnoughCoins());
     }
-
+    std::cout<<"z inta\n";
     HistoryOfOperations.NewEvent("Created Wallet from integer with value " + std::to_string(coins));
-    LeftCoins -= coins;
+    LeftCoins -= coins * UNITS;
 }
 
 Wallet::Wallet(Wallet &&w){
@@ -65,10 +68,9 @@ Wallet::Wallet(Wallet &&w){
 
 Wallet::Wallet(Wallet &&w1, Wallet &&w2){
     coins = w1.coins + w2.coins;
-    //TODO
-//    HistoryOfOperations += w1.HistoryOfOperations;
-//    HistoryOfOperations += w2.HistoryOfOperations;
-//    HistoryOfOperations.sort();
+    HistoryOfOperations = w1.HistoryOfOperations;
+    HistoryOfOperations += w2.HistoryOfOperations;
+    HistoryOfOperations.sort();
     w1.HistoryOfOperations.Operations.clear();
     w2.HistoryOfOperations.Operations.clear();
     w1.coins = 0;
@@ -124,10 +126,44 @@ void History::NewEvent(std::string event){
     Operations.emplace_back( Operation( time(0), event) );
 }
 
-Wallet& Wallet::operator=(const Wallet& other) // copy assignment
+Wallet& Wallet::operator=(Wallet&& other) // copy assignment
 {
-    if (this != &other) { // self-assignment check expected
-
+    //"Jeżeli oba obiekty są tym samym obiektem, to nic nie robi" nie zachodzi?
+    if(this != &other)
+    {
+        this->coins = other.coins;
+        this->HistoryOfOperations = other.HistoryOfOperations;
+        this->HistoryOfOperations.NewEvent("Assigned value from another Wallet " + std::to_string(coins));
     }
     return *this;
+}
+
+History& History::operator+=(const History &rhs){
+    for(unsigned int i = 0; i < rhs.Operations.size(); i++)
+        this->Operations.emplace_back(rhs.Operations[i]);
+    return *this;
+}
+
+Wallet operator+(Wallet&& lhs, Wallet rhs)
+{
+    Wallet ret;
+    ret.coins = lhs.coins + rhs.coins;
+    ret.HistoryOfOperations = lhs.HistoryOfOperations;
+    ret.HistoryOfOperations += rhs.HistoryOfOperations;
+    ret.HistoryOfOperations.sort();
+    lhs.coins = 0;
+    rhs.coins = 0;
+    rhs.HistoryOfOperations.NewEvent("Assigned value to another Wallet " + std::to_string(rhs.coins));
+    return ret;
+}
+
+bool operator<(const Operation &lhs, const Operation &rhs){
+    if(lhs.time == rhs.time)
+        return lhs.name < rhs.name;
+    return lhs.time < rhs.time;
+}
+
+void History::sort()
+{
+    std::sort(Operations.begin(), Operations.end());
 }
