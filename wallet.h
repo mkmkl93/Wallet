@@ -77,7 +77,7 @@ class Wallet {
 
     Wallet(coins_t coins);
 
-    Wallet(const Wallet &) = default;
+    Wallet(const Wallet &) = delete;
 
     Wallet(Wallet &&w);
 
@@ -101,7 +101,7 @@ class Wallet {
 
     friend Wallet operator*(coins_t lhs, Wallet rhs);
 
-    friend Wallet operator*(Wallet lhs, int rhs);
+    friend Wallet operator*(Wallet lhs, coins_t rhs);
 
 };
 

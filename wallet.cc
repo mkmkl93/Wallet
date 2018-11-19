@@ -19,31 +19,31 @@ struct NegativeBankBalance : public std::exception
     	return "NegativeBankBalance";
     }
 };
-
-class Operation{
-        std::chrono::milliseconds ms;
-
-        std::string name;
-
-        friend bool operator<(const Operation &lhs, const Operation &rhs);
-
-        Operation(std::chrono::milliseconds ms, std::string s);
-};
-
-class History
-{
-    std::vector<Operation> Operations;
-
-    void NewEvent(std::string event);
-
-    History& operator+=(const History &rhs);
-
-    unsigned int OperationsSize();
-
-    void clear();
-
-    void sort();
-};
+//
+//class Operation{
+//        std::chrono::milliseconds ms;
+//
+//        std::string name;
+//
+//        friend bool operator<(const Operation &lhs, const Operation &rhs);
+//
+//        Operation(std::chrono::milliseconds ms, std::string s);
+//};
+//
+//class History
+//{
+//    std::vector<Operation> Operations;
+//
+//    void NewEvent(std::string event);
+//
+//    History& operator+=(const History &rhs);
+//
+//    unsigned int OperationsSize();
+//
+//    void clear();
+//
+//    void sort();
+//};
 
 
 Wallet::coins_t Wallet::LeftCoins = 2'100'000 * UNITS;
@@ -83,7 +83,7 @@ Wallet::Wallet(){
 Wallet::Wallet(std::string str){
     //miejsce na parser
     std::regex pattern(R"((([1-9][0-9]*)|(0))([.,][0-9]{1,8})?)");
-    
+
     try{
         coins = Wallet::StringToCoins(str);
     }catch(NotEnoughCoins &e){
