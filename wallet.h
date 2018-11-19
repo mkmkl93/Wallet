@@ -11,21 +11,22 @@ class Wallet {
 
   public:
     // czy da sie to dac jako private?
-    class History {
-      public:
-        class Operation {
-          private:
+    class Operation {
+        private:
 
             std::chrono::milliseconds ms;
+
             coins_t coinsAfterOp;
+
             std::string name;
 
-          public:
+        public:
 
             Operation(std::chrono::milliseconds ms, std::string s);
+
             Operation() = delete;
-            Operation(const Operation&) = delete;
-            Operation(Operation &&) = delete;
+//            Operation(const Operation &) = delete;
+//            Operation(Operation &&) = delete;
 
             coins_t getUnits() const;
 
@@ -36,32 +37,19 @@ class Wallet {
             friend bool operator==(const Operation &lhs, const Operation &rhs);
             friend bool operator!=(const Operation &lhs, const Operation &rhs);
             friend std::ostream& operator<<(std::ostream &output, const Operation &op);
-        };
-
-      private:
-
-        std::vector<Operation> Operations;
-
-      public:
-        void NewEvent(std::string event);
-
-        History &operator+=(const History &rhs);
-
-        unsigned int OperationsSize();
-
-        void clear();
-
-        void sort();
     };
-    //TODO
-//    private:
+
+    std::vector<Operation> Operations;
+
+    void NewEvent(std::string event);
+
+    unsigned int OperationsSize();
 
     const static coins_t UNITS = 1000'000'00;
     static std::chrono::high_resolution_clock::time_point TimeStart;
 
     static coins_t LeftCoins;
 
-    History HistoryOfOperations;
     coins_t coins = 0;
 
     void EnoughCoins(coins_t coins);
@@ -98,10 +86,12 @@ class Wallet {
     Wallet &operator=(const Wallet &other) = delete;
 
     friend Wallet operator+(Wallet &&lhs, Wallet &rhs);
+    friend Wallet operator+(Wallet &&lhs, Wallet &&rhs);
     friend Wallet operator+(Wallet &lhs, Wallet &&rhs) = delete;
     friend Wallet operator+(Wallet &lhs, Wallet &rhs) = delete;
 
     friend Wallet operator-(Wallet &&lhs, Wallet &rhs);
+    friend Wallet operator-(Wallet &&lhs, Wallet &&rhs);
     friend Wallet operator-(Wallet &lhs, Wallet &&rhs) = delete;
     friend Wallet operator-(Wallet &lhs, Wallet &rhs) = delete;
 
