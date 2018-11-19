@@ -7,22 +7,26 @@
 
 
 class Wallet {
-  typedef long long coins_t;
+
+
 
   public:
+    typedef long long coins_t;
     // czy da sie to dac jako private?
     class Operation {
         private:
 
-            std::chrono::milliseconds ms;
+            std::chrono::system_clock::time_point time;
 
             coins_t coinsAfterOp;
 
             std::string name;
 
+            std::string CoinsToString(coins_t coins);
+
         public:
 
-            Operation(std::chrono::milliseconds ms, std::string s);
+            Operation(std::string s);
 
             Operation() = delete;
 //            Operation(const Operation &) = delete;
@@ -46,7 +50,6 @@ class Wallet {
     unsigned int OperationsSize();
 
     const static coins_t UNITS = 1000'000'00;
-    static std::chrono::high_resolution_clock::time_point TimeStart;
 
     static coins_t LeftCoins;
 

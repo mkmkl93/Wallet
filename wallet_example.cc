@@ -29,9 +29,11 @@ int main() {
 ////                                            w historii i 3 B
 
 
-    assert(Empty() == 0);
+    std::cout<<Wallet::Operation("a");
+//    assert(Empty() == 0);
+
 //    assert(Empty() < Wallet(1));
-    assert(Empty().getUnits() == 0);
+//    assert(Empty().getUnits() == 0);
 //    assert(Empty().opSize() == 1);
 //    assert(Empty()[0].getUnits() == 0);
 //

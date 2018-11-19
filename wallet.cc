@@ -28,8 +28,6 @@ struct InvalidInput : public std::exception {
 
 Wallet::coins_t Wallet::LeftCoins = 21'000'000 * UNITS;
 
-std::chrono::high_resolution_clock::time_point Wallet::TimeStart = std::chrono::high_resolution_clock::now();
-
 void Wallet::EnoughCoins(Wallet::coins_t coins){
     if(coins > Wallet::LeftCoins)
         throw(NotEnoughCoins());
@@ -153,13 +151,11 @@ const Wallet Empty()
 
 
 void Wallet::NewEvent(std::string event){
-    std::chrono::high_resolution_clock::time_point Now = std::chrono::high_resolution_clock::now();
-    std::chrono::milliseconds time = std::chrono::duration_cast<std::chrono::milliseconds>(Now - Wallet::TimeStart);
-    Operations.emplace_back( Operation(time, event) );
+    Operations.emplace_back( Operation(event) );
 }
 
-Wallet::Operation::Operation(std::chrono::milliseconds ms, std::string s){
-    this->ms = ms;
+Wallet::Operation::Operation(std::string s){
+    this->time = std::chrono::system_clock::now();
     name = s;
 }
 
@@ -232,31 +228,46 @@ Wallet operator-(Wallet&& lhs, Wallet &&rhs)
 }
 
 bool operator<(const Wallet::Operation &lhs, const Wallet::Operation &rhs){
-    return lhs.ms < rhs.ms;
+    return lhs.time < rhs.time;
 }
 
 bool operator>(const Wallet::Operation &lhs, const Wallet::Operation &rhs) {
-    return lhs.ms > rhs.ms;
+    return lhs.time > rhs.time;
 }
 
 bool operator<=(const Wallet::Operation &lhs, const Wallet::Operation &rhs) {
-    return lhs.ms <= rhs.ms;
+    return lhs.time <= rhs.time;
 }
 
 bool operator>=(const Wallet::Operation &lhs, const Wallet::Operation &rhs) {
-    return lhs.ms >= rhs.ms;
+    return lhs.time >= rhs.time;
 }
 
 bool operator==(const Wallet::Operation &lhs, const Wallet::Operation &rhs) {
-    return lhs.ms == rhs.ms;
+    return lhs.time == rhs.time;
 }
 
 bool operator!=(const Wallet::Operation &lhs, const Wallet::Operation &rhs) {
-    return lhs.ms != rhs.ms;
+    return lhs.time != rhs.time;
+}
+
+std::string CoinsToString(Wallet::coins_t coins){
+    std::string res;
+    res += coins/(Wallet().UNITS) + ".";
+    std::string pom = std::to_string(coins%Wallet().UNITS);
+    std::reverse(pom.begin(),pom.end());
+    while(pom.size() < 8)
+        pom += "0";
+    std::reverse(pom.begin(),pom.end());
+    return res;
 }
 
 std::ostream &operator<<(std::ostream &output, const Wallet::Operation &op) {
-    //TODO
+    time_t tt = std::chrono::system_clock::to_time_t(op.time);
+    tm local_tm = *localtime(&tt);
+    output<<"Wallet balance is "<<CoinsToString(op.coinsAfterOp)<<" B after operation made at day "<<
+                    local_tm.tm_year + 1900<<"-"<<local_tm.tm_mon + 1<<"-"<<local_tm.tm_mday<<"\n";
+    return output;
 }
 
 Wallet::~Wallet(){
@@ -312,3 +323,5 @@ bool operator!=(const Wallet &lhs, const Wallet &rhs) {
 std::ostream& operator<<(std::ostream &output, const Wallet &w) {
     //TODO
 }
+
+
