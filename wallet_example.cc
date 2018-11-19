@@ -28,8 +28,8 @@ int main() {
 //    Wallet suma4 = Wallet(1) + Wallet(2);  // OK, suma4 ma dwa wpisy
 ////                                            w historii i 3 B
 
-
-    std::cout<<Wallet::Operation("a");
+    Wallet w1;
+    std::cout<<w1.Operations[0];
 //    assert(Empty() == 0);
 
 //    assert(Empty() < Wallet(1));

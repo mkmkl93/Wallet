@@ -55,7 +55,7 @@ Wallet::coins_t Wallet::StringToCoins(std::string str){
 }
 
 Wallet::Wallet(){
-    NewEvent("Created empty Wallet");
+    NewEvent(0);
 }
 
 Wallet::Wallet(std::string str){
@@ -67,7 +67,7 @@ Wallet::Wallet(std::string str){
         } catch (NotEnoughCoins &e) {
             throw (NotEnoughCoins());
         }
-        NewEvent("Created Wallet from string with value " + std::to_string(coins));
+        NewEvent(coins);
         LeftCoins -= coins;
     } else {
         throw InvalidInput();
@@ -81,7 +81,7 @@ Wallet::Wallet(coins_t coins){
     }catch(NotEnoughCoins &e){
         throw(NotEnoughCoins());
     }
-    NewEvent("Created Wallet from integer with value " + std::to_string(coins));
+    NewEvent(coins);
     LeftCoins -= coins * UNITS;
 }
 
@@ -90,7 +90,7 @@ Wallet::Wallet(Wallet &&w){
     Operations = w.Operations;
     w.coins = 0;
 //    w.Operations.Operations.clear();
-    NewEvent("Created Wallet from another Wallet with value " + std::to_string(coins));
+    NewEvent(coins);
 }
 
 Wallet::Wallet(Wallet &&w1, Wallet &&w2){
@@ -102,7 +102,7 @@ Wallet::Wallet(Wallet &&w1, Wallet &&w2){
     w2.Operations.clear();
     w1.coins = 0;
     w2.coins = 0;
-    NewEvent("Created Wallet from other Wallets with value " + std::to_string(coins));
+    NewEvent(coins);
 }
 
 Wallet Wallet::fromBinary(std::string str)
@@ -150,13 +150,13 @@ const Wallet Empty()
 
 
 
-void Wallet::NewEvent(std::string event){
-    Operations.emplace_back( Operation(event) );
+void Wallet::NewEvent(Wallet::coins_t coins){
+    Operations.emplace_back( Operation(coins) );
 }
 
-Wallet::Operation::Operation(std::string s){
-    this->time = std::chrono::system_clock::now();
-    name = s;
+Wallet::Operation::Operation(Wallet::coins_t coins){
+    time = std::chrono::system_clock::now();
+    coinsAfterOp = coins;
 }
 
 Wallet& Wallet::operator=(Wallet&& other) // move assignment
@@ -166,7 +166,7 @@ Wallet& Wallet::operator=(Wallet&& other) // move assignment
     {
         this->coins = other.coins;
         this->Operations = other.Operations;
-        this->NewEvent("Assigned value from another Wallet " + std::to_string(coins));
+        this->NewEvent(coins);
     }
     return *this;
 }
@@ -180,7 +180,7 @@ Wallet operator+(Wallet&& lhs, Wallet &rhs)
                ret.Operations.begin());
     lhs.coins = 0;
     rhs.coins = 0;
-    rhs.NewEvent("Assigned value to another Wallet " + std::to_string(rhs.coins));
+    rhs.NewEvent(rhs.coins);
     return ret;
 }
 
@@ -193,7 +193,7 @@ Wallet operator+(Wallet&& lhs, Wallet &&rhs)
                ret.Operations.begin());
     lhs.coins = 0;
     rhs.coins = 0;
-    rhs.NewEvent("Assigned value to another Wallet " + std::to_string(rhs.coins));
+    rhs.NewEvent(rhs.coins);
     return ret;
 }
 
@@ -208,7 +208,7 @@ Wallet operator-(Wallet&& lhs, Wallet &rhs)
                ret.Operations.begin());
     lhs.coins -= rhs.coins;
     rhs.coins *= 2;
-    rhs.NewEvent("Substracted value from another Wallet " + std::to_string(rhs.coins));
+    rhs.NewEvent(rhs.coins);
     return ret;
 }
 
@@ -223,7 +223,7 @@ Wallet operator-(Wallet&& lhs, Wallet &&rhs)
                ret.Operations.begin());
     lhs.coins -= rhs.coins;
     rhs.coins *= 2;
-    rhs.NewEvent("Substracted value from another Wallet " + std::to_string(rhs.coins));
+    rhs.NewEvent(rhs.coins);
     return ret;
 }
 
@@ -252,6 +252,10 @@ bool operator!=(const Wallet::Operation &lhs, const Wallet::Operation &rhs) {
 }
 
 std::string CoinsToString(Wallet::coins_t coins){
+    if(coins == 0)
+    {
+        return "0.00000000";
+    }
     std::string res;
     res += coins/(Wallet().UNITS) + ".";
     std::string pom = std::to_string(coins%Wallet().UNITS);
@@ -281,7 +285,7 @@ Wallet operator*(Wallet::coins_t lhs, Wallet rhs){
         throw(NotEnoughCoins());
     }
     Wallet ret(lhs * Wallet::UNITS);
-    ret.NewEvent("Created from multiplication coins_t times Wallet.coins " + std::to_string(ret.coins));
+    ret.NewEvent(ret.coins);
     return ret;
 }
 
@@ -292,7 +296,7 @@ Wallet operator*(Wallet lhs, Wallet::coins_t rhs){
         throw(NotEnoughCoins());
     }
     Wallet ret(rhs * Wallet::UNITS);
-    ret.NewEvent("Created from multiplication Wallet coins times coins_t " + std::to_string(ret.coins));
+    ret.NewEvent(ret.coins);
     return ret;
 }
 

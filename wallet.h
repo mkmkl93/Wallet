@@ -20,13 +20,11 @@ class Wallet {
 
             coins_t coinsAfterOp;
 
-            std::string name;
-
             std::string CoinsToString(coins_t coins);
 
         public:
 
-            Operation(std::string s);
+            Operation(Wallet::coins_t coins);
 
             Operation() = delete;
 //            Operation(const Operation &) = delete;
@@ -45,7 +43,7 @@ class Wallet {
 
     std::vector<Operation> Operations;
 
-    void NewEvent(std::string event);
+    void NewEvent(coins_t coins);
 
     unsigned int OperationsSize();
 
