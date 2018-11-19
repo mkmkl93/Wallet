@@ -19,6 +19,12 @@ struct NegativeBankBalance : public std::exception
     	return "NegativeBankBalance";
     }
 };
+
+struct InvalidInput : public std::exception {
+    const char * what () const throw() {
+        return "InvalidInput";
+    }
+};
 //
 //class Operation{
 //        std::chrono::milliseconds ms;
@@ -46,7 +52,7 @@ struct NegativeBankBalance : public std::exception
 //};
 
 
-Wallet::coins_t Wallet::LeftCoins = 2'100'000 * UNITS;
+Wallet::coins_t Wallet::LeftCoins = 21'000'000 * UNITS;
 
 std::chrono::high_resolution_clock::time_point Wallet::TimeStart = std::chrono::high_resolution_clock::now();
 
@@ -82,16 +88,20 @@ Wallet::Wallet(){
 
 Wallet::Wallet(std::string str){
     //miejsce na parser
-    std::regex pattern(R"((([1-9][0-9]*)|(0))([.,][0-9]{1,8})?)");
+    std::regex pattern(R"(\s*(([1-9][0-9]{0,7})|(0))([.,][0-9]{1,8})?\s*)");
 
-    try{
-        coins = Wallet::StringToCoins(str);
-    }catch(NotEnoughCoins &e){
-        throw(NotEnoughCoins());
+    if (std::regex_match(str, pattern)) {
+        try {
+            coins = Wallet::StringToCoins(str);
+        } catch (NotEnoughCoins &e) {
+            throw (NotEnoughCoins());
+        }
+
+        HistoryOfOperations.NewEvent("Created Wallet from string with value " + std::to_string(coins));
+        LeftCoins -= coins;
+    } else {
+        throw InvalidInput();
     }
-
-    HistoryOfOperations.NewEvent("Created Wallet from string with value " + std::to_string(coins));
-    LeftCoins -= coins;
 }
 
 Wallet::Wallet(coins_t coins){
@@ -128,20 +138,26 @@ Wallet::Wallet(Wallet &&w1, Wallet &&w2){
 
 Wallet Wallet::fromBinary(std::string str)
 {
-    coins_t count = 0;
-    try{
-        for(unsigned int i = 0; i < str.size(); i++){
-            count = count * 2 + str[i] - '0';
-            EnoughCoins(count);
+    std::regex pattern(R"((1[01]{0,24})|(0))");
+
+    if (std::regex_match(str, pattern)) {
+        coins_t count = 0;
+        try {
+            for (unsigned int i = 0; i < str.size(); i++) {
+                count = count * 2 + str[i] - '0';
+                EnoughCoins(count);
+            }
         }
+        catch (NotEnoughCoins &e) {
+            throw (NotEnoughCoins());
+        }
+        return Wallet(count);
+    } else {
+        throw(InvalidInput());
     }
-    catch(NotEnoughCoins e){
-        throw(NotEnoughCoins());
-    }
-    return Wallet(count);
 }
 
-Wallet::coins_t Wallet::getUnits(){
+Wallet::coins_t Wallet::getUnits() const {
     return Wallet::coins;
 }
 
@@ -176,7 +192,7 @@ Wallet::History::Operation::Operation(std::chrono::milliseconds ms, std::string 
     name = s;
 }
 
-Wallet& Wallet::operator=(Wallet&& other) // copy assignment
+Wallet& Wallet::operator=(Wallet&& other) // move assignment
 {
     //"Jeżeli oba obiekty są tym samym obiektem, to nic nie robi" nie zachodzi?
     if(this != &other)
@@ -194,7 +210,7 @@ Wallet::History& Wallet::History::operator+=(const Wallet::History &rhs){
     return *this;
 }
 
-Wallet operator+(Wallet&& lhs, Wallet rhs)
+Wallet operator+(Wallet&& lhs, Wallet &rhs)
 {
     Wallet ret;
     ret.coins = lhs.coins + rhs.coins;
@@ -207,7 +223,7 @@ Wallet operator+(Wallet&& lhs, Wallet rhs)
     return ret;
 }
 
-Wallet operator-(Wallet&& lhs, Wallet rhs)
+Wallet operator-(Wallet&& lhs, Wallet &rhs)
 {
     if(lhs.coins < rhs.coins)
         throw(NegativeBankBalance());
@@ -262,25 +278,54 @@ Wallet::~Wallet(){
 
 Wallet operator*(Wallet::coins_t lhs, Wallet rhs){
     try{
-        rhs.EnoughCoins( lhs * rhs.UNITS );
-    }catch(NotEnoughCoins e){
+        rhs.EnoughCoins( lhs * Wallet::UNITS );
+    }catch(NotEnoughCoins &e){
         throw(NotEnoughCoins());
     }
-    Wallet ret(lhs * rhs.UNITS);
+    Wallet ret(lhs * Wallet::UNITS);
     ret.HistoryOfOperations.NewEvent("Created from multiplication coins_t times Wallet.coins " + std::to_string(ret.coins));
     return ret;
 }
 
 Wallet operator*(Wallet lhs, Wallet::coins_t rhs){
     try{
-        lhs.EnoughCoins( rhs * lhs.UNITS );
-    }catch(NotEnoughCoins e){
+        lhs.EnoughCoins( rhs * Wallet::UNITS );
+    }catch(NotEnoughCoins &e){
         throw(NotEnoughCoins());
     }
-    Wallet ret(rhs * lhs.UNITS);
+    Wallet ret(rhs * Wallet::UNITS);
     ret.HistoryOfOperations.NewEvent("Created from multiplication Wallet coins times coins_t " + std::to_string(ret.coins));
     return ret;
 }
+
+bool operator<(const Wallet &lhs, const Wallet &rhs) {
+    return lhs.getUnits() < rhs.getUnits();
+}
+
+bool operator<=(const Wallet &lhs, const Wallet &rhs) {
+    return lhs.getUnits() <= rhs.getUnits();
+}
+
+bool operator>(const Wallet &lhs, const Wallet &rhs) {
+    return lhs.getUnits() > rhs.getUnits();
+}
+
+bool operator>=(const Wallet &lhs, const Wallet &rhs) {
+    return lhs.getUnits() >= rhs.getUnits();
+}
+
+bool operator==(const Wallet &lhs, const Wallet &rhs) {
+    return lhs.getUnits() == rhs.getUnits();
+}
+
+bool operator!=(const Wallet &lhs, const Wallet &rhs) {
+    return lhs.getUnits() != rhs.getUnits();
+}
+
+std::ostream& operator<<(std::ostream &output, const Wallet &w) {
+    //TODO
+}
+
 
 unsigned int Wallet::History::OperationsSize(){
     return Operations.size();

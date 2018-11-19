@@ -87,7 +87,7 @@ class Wallet {
 
     Wallet fromBinary(std::string str);
 
-    coins_t getUnits();
+    coins_t getUnits() const;
 
     unsigned int opSize();
 
@@ -95,13 +95,29 @@ class Wallet {
 
     Wallet &operator=(Wallet &&other);
 
-    friend Wallet operator+(Wallet &&lhs, Wallet rhs);
+    Wallet &operator=(const Wallet &other) = delete;
 
-    friend Wallet operator-(Wallet &&lhs, Wallet rhs);
+    friend Wallet operator+(Wallet &&lhs, Wallet &rhs);
+    friend Wallet operator+(Wallet &lhs, Wallet &&rhs) = delete;
+    friend Wallet operator+(Wallet &lhs, Wallet &rhs) = delete;
+
+    friend Wallet operator-(Wallet &&lhs, Wallet &rhs);
+    friend Wallet operator-(Wallet &lhs, Wallet &&rhs) = delete;
+    friend Wallet operator-(Wallet &lhs, Wallet &rhs) = delete;
 
     friend Wallet operator*(coins_t lhs, Wallet rhs);
 
     friend Wallet operator*(Wallet lhs, coins_t rhs);
+
+    friend bool operator<(const Wallet &lhs, const Wallet &rhs);
+    friend bool operator>(const Wallet &lhs, const Wallet &rhs);
+    friend bool operator<=(const Wallet &lhs, const Wallet &rhs);
+    friend bool operator>=(const Wallet &lhs, const Wallet &rhs);
+    friend bool operator==(const Wallet &lhs, const Wallet &rhs);
+    friend bool operator!=(const Wallet &lhs, const Wallet &rhs);
+
+    friend std::ostream& operator<<(std::ostream &output, const Wallet &w);
+
 
 };
 
