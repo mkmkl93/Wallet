@@ -3,6 +3,7 @@
 #include <typeinfo>
 #include <algorithm>
 #include <chrono>
+#include <regex>
 #include "wallet.h"
 
 struct NotEnoughCoins : public std::exception
@@ -81,6 +82,8 @@ Wallet::Wallet(){
 
 Wallet::Wallet(std::string str){
     //miejsce na parser
+    std::regex pattern(R"((([1-9][0-9]*)|(0))([.,][0-9]{1,8})?)");
+    
     try{
         coins = Wallet::StringToCoins(str);
     }catch(NotEnoughCoins &e){
