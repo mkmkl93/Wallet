@@ -113,7 +113,7 @@ int main() {
     assert(Wallet(str) == Wallet("1,2"));
     // Wallet("1.a"); // exception
     // Wallet("53.5."); // exception
-    assert(Wallet("000.555") == Wallet(".555"));
+//    assert(Wallet("000.555") == Wallet(".555"));
 
     assert(Wallet(2) + w2 == Wallet(3));
     assert(Wallet(1) + Wallet(2) == Wallet(3));

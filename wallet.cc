@@ -116,7 +116,7 @@ Wallet::Wallet(int coins) : Wallet::Wallet(static_cast<coins_t>(coins)) {}
 Wallet::Wallet(short coins) : Wallet::Wallet(static_cast<coins_t>(coins)) {}
 
 Wallet::Wallet(std::string str){
-    static std::regex pattern(R"(\s*(([1-9][0-9]{0,7})|(0))([.,][0-9]{1,8})?\s*)");
+    std::regex pattern(R"(\s*(([1-9][0-9]{0,7})|(0))([.,][0-9]{1,8})?\s*)");
 
     if (std::regex_match(str, pattern)) {
         try {
@@ -143,9 +143,10 @@ Wallet::Wallet(Wallet &&w){
 
 Wallet::Wallet(Wallet &&w1, Wallet &&w2){
     coins = w1.coins + w2.coins;
+    Operations.reserve(w1.opSize()+w2.opSize());
     std::merge(w1.Operations.begin(), w1.Operations.end(),
                w2.Operations.begin(), w2.Operations.end(),
-               Operations.begin());
+               std::back_inserter(Operations));
     w1.Operations.clear();
     w2.Operations.clear();
     w1.coins = 0;
@@ -159,7 +160,7 @@ Wallet::~Wallet(){
 
 Wallet Wallet::fromBinary(std::string str)
 {
-    static std::regex pattern(R"((1[01]{0,24})|(0))");
+    std::regex pattern(R"((1[01]{0,24})|(0))");
 
     if (std::regex_match(str, pattern)) {
         coins_t count = 0;
