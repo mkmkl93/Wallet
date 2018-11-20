@@ -78,7 +78,7 @@ class Wallet {
 
     coins_t getUnits() const;
 
-    unsigned int opSize();
+    unsigned int opSize() const;
 
     coins_t getCoins();
 
@@ -106,7 +106,6 @@ class Wallet {
     friend bool operator>=(const Wallet &lhs, const Wallet &rhs);
     friend bool operator==(const Wallet &lhs, const Wallet &rhs);
     friend bool operator!=(const Wallet &lhs, const Wallet &rhs);
-
     friend std::ostream& operator<<(std::ostream &output, const Wallet &w);
 
 

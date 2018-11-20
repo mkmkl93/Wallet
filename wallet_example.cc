@@ -8,7 +8,7 @@
 #include <numeric>
 #include <chrono>
 
-//static const uint UNITS_IN_B = 100000000;
+static const uint UNITS_IN_B = 100000000;
 
 using std::move;
 
@@ -28,23 +28,25 @@ int main() {
 //    Wallet suma4 = Wallet(1) + Wallet(2);  // OK, suma4 ma dwa wpisy
 ////                                            w historii i 3 B
 
-    Wallet w1;
-    std::cout<<w1.Operations[0];
-//    assert(Empty() == 0);
+//    Wallet w1;
+//    std::cout<<w1[0];
+
+    assert(Empty() == 0);
 
 //    assert(Empty() < Wallet(1));
-//    assert(Empty().getUnits() == 0);
-//    assert(Empty().opSize() == 1);
+    assert(Empty().getUnits() == 0);
+    assert(Empty().opSize() == 1);
 //    assert(Empty()[0].getUnits() == 0);
 //
-//    Wallet w1;
-//    assert(w1 == Empty());
-//    assert(w1.opSize() == 1);
+    Wallet w1;
+    assert(w1 == Empty());
+    assert(w1.opSize() == 1);
 //
-//    Wallet w2(1), w3(1);
-//    assert(w2.opSize() == 1);
-//    assert(w2.getUnits() == UNITS_IN_B);
-//
+    Wallet w2(1), w3(1);
+    assert(w2.getUnits() == UNITS_IN_B);
+    assert(w2.opSize() == 1);
+
+
 //    assert(Wallet::fromBinary("100") == Wallet(4));
 //    assert(Wallet(" 1.2000 ") == Wallet("1,2"));
 //

@@ -81,6 +81,7 @@ Wallet::Wallet(coins_t coins){
     }catch(NotEnoughCoins &e){
         throw(NotEnoughCoins());
     }
+    this->coins = coins * UNITS;
     NewEvent(coins);
     LeftCoins -= coins * UNITS;
 }
@@ -134,7 +135,7 @@ Wallet::coins_t Wallet::Operation::getUnits() const {
     return coinsAfterOp;
 }
 
-unsigned int Wallet::opSize(){
+unsigned int Wallet::opSize() const{
     return Operations.size();
 }
 
@@ -191,8 +192,8 @@ Wallet operator+(Wallet&& lhs, Wallet &&rhs)
     std::merge(lhs.Operations.begin(), lhs.Operations.end(),
                rhs.Operations.begin(), rhs.Operations.end(),
                ret.Operations.begin());
-    lhs.coins = 0;
     rhs.coins = 0;
+    lhs.coins = 0;
     rhs.NewEvent(rhs.coins);
     return ret;
 }
