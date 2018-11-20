@@ -15,7 +15,6 @@ class Wallet {
 
             std::chrono::system_clock::time_point time;
             coins_t coinsAfterOp;
-            std::string CoinsToString(coins_t coins);
 
         public:
 
@@ -36,8 +35,6 @@ class Wallet {
     };
 
     const static coins_t UNITS = 100'000'000;
-    static coins_t LeftCoins;
-    coins_t coins = 0;
 
     template<typename T> Wallet(T arg) = delete;
 
@@ -93,6 +90,9 @@ class Wallet {
         void NewEvent(coins_t coins);
         static void EnoughCoins(coins_t coins);
         coins_t StringToCoins(std::string str);
+
+        static coins_t LeftCoins;
+        coins_t coins = 0;
 };
 
 const Wallet& Empty();
