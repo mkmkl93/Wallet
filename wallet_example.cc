@@ -96,9 +96,11 @@ int main() {
     std::cout << i++ << std::endl;
     Wallet w7(1);
     std::this_thread::sleep_for(std::chrono::milliseconds(20));
-    Wallet w8(2);
-    std::cout<<w7[0]<<"\n";
-    std::cout<<w8[0]<<"\n";
+    Wallet w8 = Wallet(2) - w7;
+    std::cout<<w7<<"\n";
+    std::cout<<w8<<"\n";
+    std::cout<<w7.opSize();
+    std::cout<<w8.opSize();
 
     std::cout << w4[0];
     std::cout << w4[1];

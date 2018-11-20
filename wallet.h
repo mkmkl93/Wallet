@@ -38,7 +38,6 @@ class Wallet {
     };
 
     const static coins_t UNITS = 100'000'000;
-    std::vector<Operation> Operations;
     static coins_t LeftCoins;
     coins_t coins = 0;
 
@@ -96,6 +95,7 @@ class Wallet {
     friend std::ostream& operator<<(std::ostream &output, const Wallet &w);
 
     private:
+        std::vector<Operation> Operations;
         void NewEvent(coins_t coins);
         static void EnoughCoins(coins_t coins);
         coins_t StringToCoins(std::string str);

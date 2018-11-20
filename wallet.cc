@@ -206,13 +206,23 @@ Wallet&& operator+(Wallet&& lhs, Wallet &&rhs)
 
 Wallet&& operator-(Wallet&& lhs, Wallet &rhs)
 {
-    lhs -= rhs;
+    try{
+        lhs -= rhs;
+    }
+    catch(NegativeBankBalance &e){
+        throw NegativeBankBalance();
+    }
     return std::move(lhs);
 }
 
 Wallet&& operator-(Wallet&& lhs, Wallet &&rhs)
 {
-    lhs -= rhs;
+    try{
+        lhs -= rhs;
+    }
+    catch(NegativeBankBalance &e){
+        throw NegativeBankBalance();
+    }
     return std::move(lhs);
 }
 
@@ -229,13 +239,13 @@ Wallet&& operator*(Wallet::coins_t lhs, Wallet &&rhs) {
 Wallet& Wallet::operator*=(Wallet::coins_t n) {
     if (n == 0) {
         coins = 0;
-        Operations.emplace_back(coins);
+        NewEvent(coins);
     } else {
         Wallet::EnoughCoins((n - 1) * coins);
 
         coins *= n;
         LeftCoins -= (n - 1) * coins;
-        Operations.emplace_back(coins);
+        NewEvent(coins);
     }
 
     return *this;
@@ -250,8 +260,8 @@ Wallet&& Wallet::operator*(Wallet::coins_t n) {
 Wallet& operator+=(Wallet &lhs, Wallet &rhs) {
     lhs.coins += rhs.coins;
     rhs.coins = 0;
-    lhs.Operations.emplace_back(lhs.coins);
-    rhs.Operations.emplace_back(rhs.coins);
+    lhs.NewEvent(lhs.coins);
+    rhs.NewEvent(rhs.coins);
 
     return lhs;
 }
@@ -259,26 +269,30 @@ Wallet& operator+=(Wallet &lhs, Wallet &rhs) {
 Wallet& operator+=(Wallet &lhs, Wallet &&rhs) {
     lhs.coins += rhs.coins;
     rhs.coins = 0;
-    lhs.Operations.emplace_back(lhs.coins);
-    rhs.Operations.emplace_back(rhs.coins);
+    lhs.NewEvent(lhs.coins);
+    rhs.NewEvent(rhs.coins);
 
     return lhs;
 }
 
 Wallet& operator-=(Wallet &lhs, Wallet &rhs) {
+    if(lhs.getUnits() < rhs.getUnits())
+        throw NegativeBankBalance();
     lhs.coins -= rhs.coins;
     rhs.coins *= 2;
-    lhs.Operations.emplace_back(lhs.coins);
-    rhs.Operations.emplace_back(rhs.coins);
+    lhs.NewEvent(lhs.coins);
+    rhs.NewEvent(rhs.coins);
 
     return lhs;
 }
 
 Wallet& operator-=(Wallet &lhs, Wallet &&rhs) {
+    if(lhs.getUnits() < rhs.getUnits())
+        throw NegativeBankBalance();
     lhs.coins -= rhs.coins;
     rhs.coins *= 2;
-    lhs.Operations.emplace_back(lhs.coins);
-    rhs.Operations.emplace_back(rhs.coins);
+    lhs.NewEvent(lhs.coins);
+    rhs.NewEvent(rhs.coins);
 
     return lhs;
 }
