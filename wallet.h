@@ -22,8 +22,6 @@ class Wallet {
             Operation(Wallet::coins_t coins);
 
             Operation() = delete;
-//            Operation(const Operation &) = delete;
-//            Operation(Operation &&) = delete;
 
             coins_t getUnits() const;
 
@@ -79,15 +77,6 @@ class Wallet {
 
     friend Wallet& operator-=(Wallet &lhs, Wallet &rhs);
     friend Wallet& operator-=(Wallet &lhs, Wallet &&rhs);
-
-//    bool operator<(const Wallet &rhs) const;
-//    bool operator==(const Wallet &rhs) const;
-//    bool operator>(const Wallet &rhs) const;
-//    bool operator<=(const Wallet &rhs) const;
-//    bool operator>=(const Wallet &rhs) const;
-//    bool operator!=(const Wallet &rhs) const;
-
-//    friend bool operator==(Wallet &&lhs, Wallet &&rhs);
 
     friend bool operator<(const Wallet &lhs, const Wallet &rhs);
     friend bool operator>(const Wallet &lhs, const Wallet &rhs);

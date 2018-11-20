@@ -92,7 +92,7 @@ std::ostream &operator<<(std::ostream &output, const Wallet::Operation &op) {
     time_t tt = std::chrono::system_clock::to_time_t(op.time);
     tm local_tm = *localtime(&tt);
     output<<"Wallet balance is "<<CoinsToString(op.coinsAfterOp)<<" B after operation made at day "<<
-                    local_tm.tm_year + 1900<<"-"<<local_tm.tm_mon + 1<<"-"<<local_tm.tm_mday<<"\n";
+                    local_tm.tm_year + 1900<<"-"<<local_tm.tm_mon + 1<<"-"<<local_tm.tm_mday;
     return output;
 }
 
@@ -187,9 +187,8 @@ unsigned long Wallet::opSize() const{
     return Operations.size();
 }
 
-Wallet& Wallet::operator=(Wallet&& other) // move assignment
+Wallet& Wallet::operator=(Wallet&& other)
 {
-    //"Jeżeli oba obiekty są tym samym obiektem, to nic nie robi" nie zachodzi?
     if(this != &other)
     {
         this->coins = other.coins;
@@ -303,10 +302,6 @@ Wallet& operator-=(Wallet &lhs, Wallet &&rhs) {
 
     return lhs;
 }
-
-//bool operator==(Wallet &&lhs, Wallet &&rhs) {
-//    return lhs.getUnits() == rhs.getUnits();
-//}
 
 bool operator<(const Wallet &lhs, const Wallet &rhs){
     return lhs.getUnits() < rhs.getUnits();
