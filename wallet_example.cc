@@ -16,7 +16,10 @@ static const uint UNITS_IN_B = 100000000;
 using std::move;
 
 int main() {
+//    Wallet w = Wallet::fromBinary(" 10");
     assert(Empty() == 0);
+    auto a = 1 + 2;
+    std::cout<<a;
     int i = 1;
     std::cout << i++ << std::endl;
 
@@ -75,7 +78,7 @@ int main() {
     std::cout << i++ << std::endl;
     assert(w4[1].getUnits() == w4.getUnits());
     std::cout << i++ << std::endl;
-//
+
     w4 *= 3;
     std::cout << i++ << std::endl;
     assert(w4.opSize() == 3);

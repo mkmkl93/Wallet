@@ -75,21 +75,21 @@ class Wallet {
     friend Wallet& operator-=(Wallet &lhs, Wallet &rhs);
     friend Wallet& operator-=(Wallet &lhs, Wallet &&rhs);
 
-    bool operator<(const Wallet &rhs) const;
-    bool operator>(const Wallet &rhs) const;
-    bool operator<=(const Wallet &rhs) const;
-    bool operator>=(const Wallet &rhs) const;
-    bool operator==(const Wallet &rhs) const;
-    bool operator!=(const Wallet &rhs) const;
+//    bool operator<(const Wallet &rhs) const;
+//    bool operator==(const Wallet &rhs) const;
+//    bool operator>(const Wallet &rhs) const;
+//    bool operator<=(const Wallet &rhs) const;
+//    bool operator>=(const Wallet &rhs) const;
+//    bool operator!=(const Wallet &rhs) const;
 
-    friend bool operator==(Wallet &&lhs, Wallet &&rhs);
+//    friend bool operator==(Wallet &&lhs, Wallet &&rhs);
 
-//    friend bool operator<(const Wallet &lhs, const Wallet &rhs);
-//    friend bool operator>(const Wallet &lhs, const Wallet &rhs);
-//    friend bool operator<=(const Wallet &lhs, const Wallet &rhs);
-//    friend bool operator>=(const Wallet &lhs, const Wallet &rhs);
-//    friend bool operator==(const Wallet &lhs, const Wallet &rhs);
-//    friend bool operator!=(const Wallet &lhs, const Wallet &rhs);
+    friend bool operator<(const Wallet &lhs, const Wallet &rhs);
+    friend bool operator>(const Wallet &lhs, const Wallet &rhs);
+    friend bool operator<=(const Wallet &lhs, const Wallet &rhs);
+    friend bool operator>=(const Wallet &lhs, const Wallet &rhs);
+    friend bool operator==(const Wallet &lhs, const Wallet &rhs);
+    friend bool operator!=(const Wallet &lhs, const Wallet &rhs);
     const Operation& operator[](unsigned int n) const;
 
     friend std::ostream& operator<<(std::ostream &output, const Wallet &w);
@@ -102,3 +102,4 @@ class Wallet {
 };
 
 const Wallet& Empty();
+

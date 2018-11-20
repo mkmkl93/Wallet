@@ -23,7 +23,7 @@ int main() {
     assert(suma2.getUnits() == 4 * UNITS_IN_B);
     //Wallet suma3 = suma1 + suma2;  // błąd kompilacji
     Wallet suma4 = Wallet(1) + Wallet(2);  // OK
-    assert(suma4.opSize() == 2);
+    assert(suma4.opSize() == 3);
     assert(suma4.getUnits() == 3 * UNITS_IN_B);
 
     Wallet s1, s2;

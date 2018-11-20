@@ -297,32 +297,32 @@ Wallet& operator-=(Wallet &lhs, Wallet &&rhs) {
     return lhs;
 }
 
-bool Wallet::operator<(const Wallet &rhs) const{
-    return this->getUnits() < rhs.getUnits();
+//bool operator==(Wallet &&lhs, Wallet &&rhs) {
+//    return lhs.getUnits() == rhs.getUnits();
+//}
+
+bool operator<(const Wallet &lhs, const Wallet &rhs){
+    return lhs.getUnits() < rhs.getUnits();
 }
 
-bool Wallet::operator<=(const Wallet &rhs) const{
-    return this->getUnits() <= rhs.getUnits();
+bool operator>(const Wallet &lhs, const Wallet &rhs){
+    return lhs.getUnits() > rhs.getUnits();
 }
 
-bool Wallet::operator>(const Wallet &rhs) const{
-    return this->getUnits() > rhs.getUnits();
+bool operator<=(const Wallet &lhs, const Wallet &rhs){
+    return lhs.getUnits() <= rhs.getUnits();
 }
 
-bool Wallet::operator>=(const Wallet &rhs) const{
-    return this->getUnits() >= rhs.getUnits();
+bool operator>=(const Wallet &lhs, const Wallet &rhs){
+    return lhs.getUnits() >= rhs.getUnits();
 }
 
-bool Wallet::operator==(const Wallet &rhs) const{
-    return getUnits() == rhs.getUnits();
-}
-
-bool Wallet::operator!=(const Wallet &rhs) const{
-    return this->getUnits() != rhs.getUnits();
-}
-
-bool operator==(Wallet &&lhs, Wallet &&rhs) {
+bool operator==(const Wallet &lhs, const Wallet &rhs){
     return lhs.getUnits() == rhs.getUnits();
+}
+
+bool operator!=(const Wallet &lhs, const Wallet &rhs){
+    return lhs.getUnits() != rhs.getUnits();
 }
 
 const Wallet::Operation& Wallet::operator[](unsigned int n) const {
