@@ -111,6 +111,10 @@ Wallet::Wallet(coins_t coins){
     LeftCoins -= coins * UNITS;
 }
 
+Wallet::Wallet(int coins) : Wallet::Wallet(static_cast<coins_t>(coins)) {}
+
+Wallet::Wallet(short coins) : Wallet::Wallet(static_cast<coins_t>(coins)) {}
+
 Wallet::Wallet(std::string str){
     static std::regex pattern(R"(\s*(([1-9][0-9]{0,7})|(0))([.,][0-9]{1,8})?\s*)");
 
@@ -126,6 +130,8 @@ Wallet::Wallet(std::string str){
         throw InvalidInput();
     }
 }
+
+Wallet::Wallet(const char* str) : Wallet::Wallet(std::string(str)) {}
 
 Wallet::Wallet(Wallet &&w){
     coins = w.coins;
@@ -383,3 +389,4 @@ Wallet::coins_t Wallet::StringToCoins(std::string str){
     }
     return count;
 }
+

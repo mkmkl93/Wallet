@@ -41,9 +41,14 @@ class Wallet {
     static coins_t LeftCoins;
     coins_t coins = 0;
 
+    template<typename T> Wallet(T arg) = delete;
+
     Wallet();
     Wallet(coins_t coins);
+    Wallet(int coins);
+    Wallet(short coins);
     explicit Wallet(std::string str);
+    explicit Wallet(const char* str);
     Wallet(const Wallet &) = delete;
     Wallet(Wallet &&w);
     Wallet(Wallet &&w1, Wallet &&w2);
