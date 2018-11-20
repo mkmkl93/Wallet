@@ -1,11 +1,9 @@
-#include <iostream>
-#include <ctime>
-#include <typeinfo>
 #include <algorithm>
 #include <chrono>
 #include <regex>
 #include "wallet.h"
 
+Wallet::coins_t Wallet::LeftCoins = 21'000'000 * UNITS;
 struct NotEnoughCoins : public std::exception
 {
 	const char * what () const throw (){
@@ -26,265 +24,13 @@ struct InvalidInput : public std::exception {
     }
 };
 
-Wallet::coins_t Wallet::LeftCoins = 21'000'000 * UNITS;
-
-void Wallet::EnoughCoins(Wallet::coins_t coins){
-    if(coins > Wallet::LeftCoins)
-        throw(NotEnoughCoins());
-}
-
-Wallet::coins_t Wallet::StringToCoins(std::string str){
-    unsigned int DotPos = str.find(".",0);
-    unsigned int ComaPos = str.find(",",0);
-    unsigned int delimiter = std::min(DotPos, ComaPos);
-
-    if(DotPos != str.size() || ComaPos != str.size()) {
-        for (unsigned int i = delimiter + 1; i < delimiter + 9; i++) {
-            if (i >= str.size()) {
-                str += '0';
-            } else if (str[i] < '0' || str[i] > '9') {
-                str[i] = '0';
-            }
-        }
-    }
-    coins_t count = 0;
-    try{
-        for(unsigned int i = 0; i < str.size(); i++)
-        {
-            if(str[i] < '0' || str[i] > '9')
-                continue;
-            count = count * 10 + str[i] - '0';
-            EnoughCoins(count);
-        }
-    }catch(NotEnoughCoins &e){
-        throw(NotEnoughCoins());
-    }
-    return count;
-}
-
-Wallet::Wallet(){
-    NewEvent(0);
-}
-
-Wallet::Wallet(std::string str){
-    static std::regex pattern(R"(\s*(([1-9][0-9]{0,7})|(0))([.,][0-9]{1,8})?\s*)");
-
-    if (std::regex_match(str, pattern)) {
-        try {
-            coins = Wallet::StringToCoins(str);
-        } catch (NotEnoughCoins &e) {
-            throw (NotEnoughCoins());
-        }
-        NewEvent(coins);
-        LeftCoins -= coins;
-    } else {
-        throw InvalidInput();
-    }
-}
-
-Wallet::Wallet(coins_t coins){
-
-    try{
-        EnoughCoins(coins * UNITS);
-    }catch(NotEnoughCoins &e){
-        throw(NotEnoughCoins());
-    }
-    this->coins = coins * UNITS;
-    NewEvent(coins);
-    LeftCoins -= coins * UNITS;
-}
-
-Wallet::Wallet(Wallet &&w){
-    coins = w.coins;
-    Operations = w.Operations;
-    w.coins = 0;
-//    w.Operations.Operations.clear();
-    NewEvent(coins);
-}
-
-Wallet::Wallet(Wallet &&w1, Wallet &&w2){
-    coins = w1.coins + w2.coins;
-    std::merge(w1.Operations.begin(), w1.Operations.end(),
-               w2.Operations.begin(), w2.Operations.end(),
-               Operations.begin());
-    w1.Operations.clear();
-    w2.Operations.clear();
-    w1.coins = 0;
-    w2.coins = 0;
-    NewEvent(coins);
-}
-
-Wallet Wallet::fromBinary(std::string str)
-{
-    static std::regex pattern(R"((1[01]{0,24})|(0))");
-
-    if (std::regex_match(str, pattern)) {
-        coins_t count = 0;
-        try {
-            for (unsigned int i = 0; i < str.size(); i++) {
-                count = count * 2 + str[i] - '0';
-                EnoughCoins(count);
-            }
-        }
-        catch (NotEnoughCoins &e) {
-            throw (NotEnoughCoins());
-        }
-        return Wallet(count);
-    } else {
-        throw(InvalidInput());
-    }
-}
-
-Wallet::coins_t Wallet::getUnits() const {
-    return coins;
-}
-
-Wallet::coins_t Wallet::Operation::getUnits() const {
-    return coinsAfterOp;
-}
-
-
-unsigned long Wallet::opSize() const{
-    return Operations.size();
-}
-
-Wallet::coins_t Wallet::getCoins()
-{
-    return coins;
-}
-
-const Wallet& Empty()
-{
-    const static Wallet empty = Wallet();
-
-    return empty;
-}
-
-
-
-void Wallet::NewEvent(Wallet::coins_t coins){
-    Operations.emplace_back( Operation(coins) );
-}
-
 Wallet::Operation::Operation(Wallet::coins_t coins){
     time = std::chrono::system_clock::now();
     coinsAfterOp = coins;
 }
 
-Wallet& Wallet::operator=(Wallet&& other) // move assignment
-{
-    //"Jeżeli oba obiekty są tym samym obiektem, to nic nie robi" nie zachodzi?
-    if(this != &other)
-    {
-        this->coins = other.coins;
-        this->Operations = other.Operations;
-        this->NewEvent(coins);
-    }
-    return *this;
-}
-
-Wallet& operator+=(Wallet &lhs, Wallet &rhs) {
-    lhs.coins += rhs.coins;
-    rhs.coins = 0;
-    lhs.Operations.emplace_back(lhs.coins);
-    rhs.Operations.emplace_back(rhs.coins);
-
-    return lhs;
-}
-
-Wallet& operator+=(Wallet &lhs, Wallet &&rhs) {
-    lhs.coins += rhs.coins;
-    rhs.coins = 0;
-    lhs.Operations.emplace_back(lhs.coins);
-    rhs.Operations.emplace_back(rhs.coins);
-
-    return lhs;
-}
-
-//Wallet operator+(Wallet&& lhs, Wallet &&rhs)
-//{
-//    Wallet ret;
-//    ret.coins = lhs.coins + rhs.coins;
-//    std::merge(lhs.Operations.begin(), lhs.Operations.end(),
-//               rhs.Operations.begin(), rhs.Operations.end(),
-//               ret.Operations.begin());
-//    rhs.coins = 0;
-//    lhs.coins = 0;
-//    rhs.NewEvent(rhs.coins);
-//    return ret;
-//}
-
-Wallet& operator-=(Wallet &lhs, Wallet &rhs) {
-    lhs.coins -= rhs.coins;
-    rhs.coins *= 2;
-    lhs.Operations.emplace_back(lhs.coins);
-    rhs.Operations.emplace_back(rhs.coins);
-
-    return lhs;
-}
-
-Wallet& operator-=(Wallet &lhs, Wallet &&rhs) {
-    lhs.coins -= rhs.coins;
-    rhs.coins *= 2;
-    lhs.Operations.emplace_back(lhs.coins);
-    rhs.Operations.emplace_back(rhs.coins);
-
-    return lhs;
-}
-
-Wallet& Wallet::operator*=(Wallet::coins_t n) {
-    if (n == 0) {
-        coins = 0;
-        Operations.emplace_back(coins);
-    } else {
-        Wallet::EnoughCoins((n - 1) * coins);
-
-        coins *= n;
-        LeftCoins -= (n - 1) * coins;
-        Operations.emplace_back(coins);
-    }
-
-    return *this;
-}
-
-Wallet&& Wallet::operator*(Wallet::coins_t n) {
-    *this *= n;
-
-    return std::move(*this);
-}
-
-Wallet&& operator+(Wallet&& lhs, Wallet &rhs)
-{
-    lhs += rhs;
-    return std::move(lhs);
-}
-
-Wallet&& operator+(Wallet&& lhs, Wallet &&rhs)
-{
-    lhs += rhs;
-    return std::move(lhs);
-}
-
-Wallet&& operator-(Wallet&& lhs, Wallet &rhs)
-{
-    lhs -= rhs;
-    return std::move(lhs);
-}
-
-Wallet&& operator-(Wallet&& lhs, Wallet &&rhs)
-{
-    lhs -= rhs;
-    return std::move(lhs);
-}
-
-Wallet&& operator*(Wallet::coins_t lhs, Wallet &rhs) {
-    rhs *= lhs;
-    return std::move(rhs);
-}
-
-Wallet&& operator*(Wallet::coins_t lhs, Wallet &&rhs) {
-    rhs *= lhs;
-    return std::move(rhs);
+Wallet::coins_t Wallet::Operation::getUnits() const {
+    return coinsAfterOp;
 }
 
 bool Wallet::Operation::operator<(const Wallet::Operation &rhs) const{
@@ -351,8 +97,234 @@ std::ostream &operator<<(std::ostream &output, const Wallet::Operation &op) {
     return output;
 }
 
+Wallet::Wallet(){
+    NewEvent(0);
+}
+
+Wallet::Wallet(coins_t coins){
+    try{
+        EnoughCoins(coins * UNITS);
+    }catch(NotEnoughCoins &e){
+        throw(NotEnoughCoins());
+    }
+    this->coins = coins * UNITS;
+    NewEvent(coins);
+    LeftCoins -= coins * UNITS;
+}
+
+Wallet::Wallet(std::string str){
+    static std::regex pattern(R"(\s*(([1-9][0-9]{0,7})|(0))([.,][0-9]{1,8})?\s*)");
+
+    if (std::regex_match(str, pattern)) {
+        try {
+            coins = Wallet::StringToCoins(str);
+        } catch (NotEnoughCoins &e) {
+            throw (NotEnoughCoins());
+        }
+        NewEvent(coins);
+        LeftCoins -= coins;
+    } else {
+        throw InvalidInput();
+    }
+}
+
+Wallet::Wallet(Wallet &&w){
+    coins = w.coins;
+    Operations = w.Operations;
+    w.coins = 0;
+//    w.Operations.Operations.clear();
+    NewEvent(coins);
+}
+
+Wallet::Wallet(Wallet &&w1, Wallet &&w2){
+    coins = w1.coins + w2.coins;
+    std::merge(w1.Operations.begin(), w1.Operations.end(),
+               w2.Operations.begin(), w2.Operations.end(),
+               Operations.begin());
+    w1.Operations.clear();
+    w2.Operations.clear();
+    w1.coins = 0;
+    w2.coins = 0;
+    NewEvent(coins);
+}
+
 Wallet::~Wallet(){
     LeftCoins += coins;
+}
+
+void Wallet::NewEvent(Wallet::coins_t coins){
+    Operations.emplace_back( Operation(coins) );
+}
+
+void Wallet::EnoughCoins(Wallet::coins_t coins){
+    if(coins > Wallet::LeftCoins)
+        throw(NotEnoughCoins());
+}
+
+Wallet::coins_t Wallet::StringToCoins(std::string str){
+    unsigned int DotPos = str.find(".",0);
+    unsigned int ComaPos = str.find(",",0);
+    unsigned int delimiter = std::min(DotPos, ComaPos);
+
+    if(DotPos != str.size() || ComaPos != str.size()) {
+        for (unsigned int i = delimiter + 1; i < delimiter + 9; i++) {
+            if (i >= str.size()) {
+                str += '0';
+            } else if (str[i] < '0' || str[i] > '9') {
+                str[i] = '0';
+            }
+        }
+    }
+    coins_t count = 0;
+    try{
+        for(unsigned int i = 0; i < str.size(); i++)
+        {
+            if(str[i] < '0' || str[i] > '9')
+                continue;
+            count = count * 10 + str[i] - '0';
+            EnoughCoins(count);
+        }
+    }catch(NotEnoughCoins &e){
+        throw(NotEnoughCoins());
+    }
+    return count;
+}
+
+Wallet Wallet::fromBinary(std::string str)
+{
+    static std::regex pattern(R"((1[01]{0,24})|(0))");
+
+    if (std::regex_match(str, pattern)) {
+        coins_t count = 0;
+        try {
+            for (unsigned int i = 0; i < str.size(); i++) {
+                count = count * 2 + str[i] - '0';
+                EnoughCoins(count);
+            }
+        }
+        catch (NotEnoughCoins &e) {
+            throw (NotEnoughCoins());
+        }
+        return Wallet(count);
+    } else {
+        throw(InvalidInput());
+    }
+}
+
+Wallet::coins_t Wallet::getUnits() const {
+    return coins;
+}
+
+unsigned long Wallet::opSize() const{
+    return Operations.size();
+}
+
+Wallet::coins_t Wallet::getCoins()
+{
+    return coins;
+}
+
+Wallet& Wallet::operator=(Wallet&& other) // move assignment
+{
+    //"Jeżeli oba obiekty są tym samym obiektem, to nic nie robi" nie zachodzi?
+    if(this != &other)
+    {
+        this->coins = other.coins;
+        this->Operations = other.Operations;
+        this->NewEvent(coins);
+    }
+    return *this;
+}
+
+Wallet&& operator+(Wallet&& lhs, Wallet &rhs)
+{
+    lhs += rhs;
+    return std::move(lhs);
+}
+
+Wallet&& operator+(Wallet&& lhs, Wallet &&rhs)
+{
+    lhs += rhs;
+    return std::move(lhs);
+}
+
+Wallet&& operator-(Wallet&& lhs, Wallet &rhs)
+{
+    lhs -= rhs;
+    return std::move(lhs);
+}
+
+Wallet&& operator-(Wallet&& lhs, Wallet &&rhs)
+{
+    lhs -= rhs;
+    return std::move(lhs);
+}
+
+Wallet&& operator*(Wallet::coins_t lhs, Wallet &rhs) {
+    rhs *= lhs;
+    return std::move(rhs);
+}
+
+Wallet&& operator*(Wallet::coins_t lhs, Wallet &&rhs) {
+    rhs *= lhs;
+    return std::move(rhs);
+}
+
+Wallet& Wallet::operator*=(Wallet::coins_t n) {
+    if (n == 0) {
+        coins = 0;
+        Operations.emplace_back(coins);
+    } else {
+        Wallet::EnoughCoins((n - 1) * coins);
+
+        coins *= n;
+        LeftCoins -= (n - 1) * coins;
+        Operations.emplace_back(coins);
+    }
+
+    return *this;
+}
+
+Wallet&& Wallet::operator*(Wallet::coins_t n) {
+    *this *= n;
+
+    return std::move(*this);
+}
+
+Wallet& operator+=(Wallet &lhs, Wallet &rhs) {
+    lhs.coins += rhs.coins;
+    rhs.coins = 0;
+    lhs.Operations.emplace_back(lhs.coins);
+    rhs.Operations.emplace_back(rhs.coins);
+
+    return lhs;
+}
+
+Wallet& operator+=(Wallet &lhs, Wallet &&rhs) {
+    lhs.coins += rhs.coins;
+    rhs.coins = 0;
+    lhs.Operations.emplace_back(lhs.coins);
+    rhs.Operations.emplace_back(rhs.coins);
+
+    return lhs;
+}
+
+Wallet& operator-=(Wallet &lhs, Wallet &rhs) {
+    lhs.coins -= rhs.coins;
+    rhs.coins *= 2;
+    lhs.Operations.emplace_back(lhs.coins);
+    rhs.Operations.emplace_back(rhs.coins);
+
+    return lhs;
+}
+
+Wallet& operator-=(Wallet &lhs, Wallet &&rhs) {
+    lhs.coins -= rhs.coins;
+    rhs.coins *= 2;
+    lhs.Operations.emplace_back(lhs.coins);
+    rhs.Operations.emplace_back(rhs.coins);
+
+    return lhs;
 }
 
 bool Wallet::operator<(const Wallet &rhs) const{
@@ -397,3 +369,9 @@ std::ostream& operator<<(std::ostream &output, const Wallet &w) {
     return output;
 }
 
+const Wallet& Empty()
+{
+    const static Wallet empty = Wallet();
+
+    return empty;
+}
