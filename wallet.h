@@ -111,13 +111,13 @@ class Wallet {
 
     friend bool operator==(Wallet &&lhs, Wallet &&rhs);
 
-    friend bool operator<(const Wallet &lhs, const Wallet &rhs);
-    friend bool operator>(const Wallet &lhs, const Wallet &rhs);
-    friend bool operator<=(const Wallet &lhs, const Wallet &rhs);
-    friend bool operator>=(const Wallet &lhs, const Wallet &rhs);
-    friend bool operator==(const Wallet &lhs, const Wallet &rhs);
-    friend bool operator!=(const Wallet &lhs, const Wallet &rhs);
-    const Operation& operator[](coins_t n) const;
+//    friend bool operator<(const Wallet &lhs, const Wallet &rhs);
+//    friend bool operator>(const Wallet &lhs, const Wallet &rhs);
+//    friend bool operator<=(const Wallet &lhs, const Wallet &rhs);
+//    friend bool operator>=(const Wallet &lhs, const Wallet &rhs);
+//    friend bool operator==(const Wallet &lhs, const Wallet &rhs);
+//    friend bool operator!=(const Wallet &lhs, const Wallet &rhs);
+    const Operation& operator[](unsigned int n) const;
 
     friend std::ostream& operator<<(std::ostream &output, const Wallet &w);
 

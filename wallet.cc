@@ -91,7 +91,6 @@ Wallet::Wallet(coins_t coins){
     }
     this->coins = coins * UNITS;
     NewEvent(coins);
-    this->coins = coins * UNITS;
     LeftCoins -= coins * UNITS;
 }
 
@@ -117,7 +116,7 @@ Wallet::Wallet(Wallet &&w1, Wallet &&w2){
 
 Wallet Wallet::fromBinary(std::string str)
 {
-    std::regex pattern(R"((1[01]{0,24})|(0))");
+    static std::regex pattern(R"((1[01]{0,24})|(0))");
 
     if (std::regex_match(str, pattern)) {
         coins_t count = 0;
@@ -193,18 +192,27 @@ Wallet& operator+=(Wallet &lhs, Wallet &rhs) {
     return lhs;
 }
 
-Wallet operator+(Wallet&& lhs, Wallet &&rhs)
-{
-    Wallet ret;
-    ret.coins = lhs.coins + rhs.coins;
-    std::merge(lhs.Operations.begin(), lhs.Operations.end(),
-               rhs.Operations.begin(), rhs.Operations.end(),
-               ret.Operations.begin());
+Wallet& operator+=(Wallet &lhs, Wallet &&rhs) {
+    lhs.coins += rhs.coins;
     rhs.coins = 0;
-    lhs.coins = 0;
-    rhs.NewEvent(rhs.coins);
-    return ret;
+    lhs.Operations.emplace_back(lhs.coins);
+    rhs.Operations.emplace_back(rhs.coins);
+
+    return lhs;
 }
+
+//Wallet operator+(Wallet&& lhs, Wallet &&rhs)
+//{
+//    Wallet ret;
+//    ret.coins = lhs.coins + rhs.coins;
+//    std::merge(lhs.Operations.begin(), lhs.Operations.end(),
+//               rhs.Operations.begin(), rhs.Operations.end(),
+//               ret.Operations.begin());
+//    rhs.coins = 0;
+//    lhs.coins = 0;
+//    rhs.NewEvent(rhs.coins);
+//    return ret;
+//}
 
 Wallet& operator-=(Wallet &lhs, Wallet &rhs) {
     lhs.coins -= rhs.coins;
@@ -372,10 +380,10 @@ bool Wallet::operator!=(const Wallet &rhs) const{
 }
 
 bool operator==(Wallet &&lhs, Wallet &&rhs) {
-    return lhs == rhs;
+    return lhs.getUnits() == rhs.getUnits();
 }
 
-const Wallet::Operation& Wallet::operator[](Wallet::coins_t n) const {
+const Wallet::Operation& Wallet::operator[](unsigned int n) const {
     if (n >= Wallet::Operations.size()) {
         throw(InvalidInput());
     } else {
@@ -388,5 +396,4 @@ std::ostream& operator<<(std::ostream &output, const Wallet &w) {
 
     return output;
 }
-
 

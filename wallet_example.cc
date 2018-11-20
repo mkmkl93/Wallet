@@ -21,7 +21,7 @@ int main() {
     std::cout << i++ << std::endl;
     Wallet w999("1,1");
     std::cout << i++ << std::endl;
-    assert(Wallet("1,1     ") == Wallet("1.1"));
+    assert(Wallet("1,1     ") <= Wallet("1.1"));
     std::cout << i++ << std::endl;
     Wallet w1001(1);
     std::cout << i++ << std::endl;
