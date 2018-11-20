@@ -8,8 +8,6 @@
 
 class Wallet {
 
-
-
   public:
     typedef long long coins_t;
     // czy da sie to dac jako private?
@@ -32,12 +30,12 @@ class Wallet {
 
             coins_t getUnits() const;
 
-            friend bool operator<(const Operation &lhs, const Operation &rhs);
-            friend bool operator>(const Operation &lhs, const Operation &rhs);
-            friend bool operator<=(const Operation &lhs, const Operation &rhs);
-            friend bool operator>=(const Operation &lhs, const Operation &rhs);
-            friend bool operator==(const Operation &lhs, const Operation &rhs);
-            friend bool operator!=(const Operation &lhs, const Operation &rhs);
+            bool operator<(const Operation &rhs) const;
+            bool operator>(const Operation &rhs) const;
+            bool operator<=(const Operation &rhs) const;
+            bool operator>=(const Operation &rhs) const;
+            bool operator==(const Operation &rhs) const;
+            bool operator!=(const Operation &rhs) const;
             friend std::ostream& operator<<(std::ostream &output, const Operation &op);
     };
 
@@ -47,13 +45,13 @@ class Wallet {
 
     unsigned int OperationsSize();
 
-    const static coins_t UNITS = 1000'000'00;
+    const static coins_t UNITS = 100'000'000;
 
     static coins_t LeftCoins;
 
     coins_t coins = 0;
 
-    void EnoughCoins(coins_t coins);
+    static void EnoughCoins(coins_t coins);
 
     coins_t StringToCoins(std::string str);
 
@@ -62,7 +60,7 @@ class Wallet {
 
     Wallet();
 
-    Wallet(std::string str);
+    explicit Wallet(std::string str);
 
     Wallet(coins_t coins);
 
@@ -74,11 +72,11 @@ class Wallet {
 
     ~Wallet();
 
-    Wallet fromBinary(std::string str);
+    static Wallet fromBinary(std::string str);
 
     coins_t getUnits() const;
 
-    unsigned int opSize() const;
+    unsigned long opSize() const;
 
     coins_t getCoins();
 
@@ -86,19 +84,32 @@ class Wallet {
 
     Wallet &operator=(const Wallet &other) = delete;
 
-    friend Wallet operator+(Wallet &&lhs, Wallet &rhs);
-    friend Wallet operator+(Wallet &&lhs, Wallet &&rhs);
-    friend Wallet operator+(Wallet &lhs, Wallet &&rhs) = delete;
-    friend Wallet operator+(Wallet &lhs, Wallet &rhs) = delete;
+    friend Wallet&& operator+(Wallet &&lhs, Wallet &rhs);
+    friend Wallet&& operator+(Wallet &&lhs, Wallet &&rhs);
 
-    friend Wallet operator-(Wallet &&lhs, Wallet &rhs);
-    friend Wallet operator-(Wallet &&lhs, Wallet &&rhs);
-    friend Wallet operator-(Wallet &lhs, Wallet &&rhs) = delete;
-    friend Wallet operator-(Wallet &lhs, Wallet &rhs) = delete;
+    friend Wallet&& operator-(Wallet &&lhs, Wallet &rhs);
+    friend Wallet&& operator-(Wallet &&lhs, Wallet &&rhs);
 
-    friend Wallet operator*(coins_t lhs, Wallet rhs);
+    friend Wallet&& operator*(coins_t lhs, Wallet &rhs);
+    friend Wallet&& operator*(coins_t lhs, Wallet &&rhs);
 
-    friend Wallet operator*(Wallet lhs, coins_t rhs);
+    Wallet& operator*=(coins_t n);
+    Wallet&& operator*(coins_t n);
+
+    friend Wallet& operator+=(Wallet &lhs, Wallet &rhs);
+    friend Wallet& operator+=(Wallet &lhs, Wallet &&rhs);
+
+    friend Wallet& operator-=(Wallet &lhs, Wallet &rhs);
+    friend Wallet& operator-=(Wallet &lhs, Wallet &&rhs);
+
+    bool operator<(const Wallet &rhs) const;
+    bool operator>(const Wallet &rhs) const;
+    bool operator<=(const Wallet &rhs) const;
+    bool operator>=(const Wallet &rhs) const;
+    bool operator==(const Wallet &rhs) const;
+    bool operator!=(const Wallet &rhs) const;
+
+    friend bool operator==(Wallet &&lhs, Wallet &&rhs);
 
     friend bool operator<(const Wallet &lhs, const Wallet &rhs);
     friend bool operator>(const Wallet &lhs, const Wallet &rhs);
@@ -106,9 +117,12 @@ class Wallet {
     friend bool operator>=(const Wallet &lhs, const Wallet &rhs);
     friend bool operator==(const Wallet &lhs, const Wallet &rhs);
     friend bool operator!=(const Wallet &lhs, const Wallet &rhs);
+    const Operation& operator[](coins_t n) const;
+
     friend std::ostream& operator<<(std::ostream &output, const Wallet &w);
 
+    friend const Wallet& Empty();
 
 };
 
-const Wallet Empty();
+const Wallet& Empty();

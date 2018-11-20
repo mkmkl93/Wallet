@@ -36,9 +36,17 @@ void Wallet::EnoughCoins(Wallet::coins_t coins){
 Wallet::coins_t Wallet::StringToCoins(std::string str){
     unsigned int DotPos = str.find(".",0);
     unsigned int ComaPos = str.find(",",0);
-    if(DotPos != str.size() || ComaPos != str.size())
-        for(unsigned int i = str.size(); i < std::min(DotPos,ComaPos) + 8; i++)
-            str += "0";
+    unsigned int delimiter = std::min(DotPos, ComaPos);
+
+    if(DotPos != str.size() || ComaPos != str.size()) {
+        for (unsigned int i = delimiter + 1; i < delimiter + 9; i++) {
+            if (i >= str.size()) {
+                str += '0';
+            } else if (str[i] < '0' || str[i] > '9') {
+                str[i] = '0';
+            }
+        }
+    }
     coins_t count = 0;
     try{
         for(unsigned int i = 0; i < str.size(); i++)
@@ -48,7 +56,7 @@ Wallet::coins_t Wallet::StringToCoins(std::string str){
             count = count * 10 + str[i] - '0';
             EnoughCoins(count);
         }
-    }catch(NotEnoughCoins e){
+    }catch(NotEnoughCoins &e){
         throw(NotEnoughCoins());
     }
     return count;
@@ -83,6 +91,7 @@ Wallet::Wallet(coins_t coins){
     }
     this->coins = coins * UNITS;
     NewEvent(coins);
+    this->coins = coins * UNITS;
     LeftCoins -= coins * UNITS;
 }
 
@@ -128,14 +137,15 @@ Wallet Wallet::fromBinary(std::string str)
 }
 
 Wallet::coins_t Wallet::getUnits() const {
-    return Wallet::coins;
+    return coins;
 }
 
 Wallet::coins_t Wallet::Operation::getUnits() const {
     return coinsAfterOp;
 }
 
-unsigned int Wallet::opSize() const{
+
+unsigned long Wallet::opSize() const{
     return Operations.size();
 }
 
@@ -144,9 +154,11 @@ Wallet::coins_t Wallet::getCoins()
     return coins;
 }
 
-const Wallet Empty()
+const Wallet& Empty()
 {
-    return Wallet();
+    const static Wallet empty = Wallet();
+
+    return empty;
 }
 
 
@@ -172,17 +184,13 @@ Wallet& Wallet::operator=(Wallet&& other) // move assignment
     return *this;
 }
 
-Wallet operator+(Wallet&& lhs, Wallet &rhs)
-{
-    Wallet ret;
-    ret.coins = lhs.coins + rhs.coins;
-    std::merge(lhs.Operations.begin(), lhs.Operations.end(),
-               rhs.Operations.begin(), rhs.Operations.end(),
-               ret.Operations.begin());
-    lhs.coins = 0;
+Wallet& operator+=(Wallet &lhs, Wallet &rhs) {
+    lhs.coins += rhs.coins;
     rhs.coins = 0;
-    rhs.NewEvent(rhs.coins);
-    return ret;
+    lhs.Operations.emplace_back(lhs.coins);
+    rhs.Operations.emplace_back(rhs.coins);
+
+    return lhs;
 }
 
 Wallet operator+(Wallet&& lhs, Wallet &&rhs)
@@ -198,73 +206,133 @@ Wallet operator+(Wallet&& lhs, Wallet &&rhs)
     return ret;
 }
 
-Wallet operator-(Wallet&& lhs, Wallet &rhs)
-{
-    if(lhs.coins < rhs.coins)
-        throw(NegativeBankBalance());
-    Wallet ret;
-    ret.coins = lhs.coins - rhs.coins;
-    std::merge(lhs.Operations.begin(), lhs.Operations.end(),
-               rhs.Operations.begin(), rhs.Operations.end(),
-               ret.Operations.begin());
+Wallet& operator-=(Wallet &lhs, Wallet &rhs) {
     lhs.coins -= rhs.coins;
     rhs.coins *= 2;
-    rhs.NewEvent(rhs.coins);
-    return ret;
+    lhs.Operations.emplace_back(lhs.coins);
+    rhs.Operations.emplace_back(rhs.coins);
+
+    return lhs;
 }
 
-Wallet operator-(Wallet&& lhs, Wallet &&rhs)
-{
-    if(lhs.coins < rhs.coins)
-        throw(NegativeBankBalance());
-    Wallet ret;
-    ret.coins = lhs.coins - rhs.coins;
-    std::merge(lhs.Operations.begin(), lhs.Operations.end(),
-               rhs.Operations.begin(), rhs.Operations.end(),
-               ret.Operations.begin());
+Wallet& operator-=(Wallet &lhs, Wallet &&rhs) {
     lhs.coins -= rhs.coins;
     rhs.coins *= 2;
-    rhs.NewEvent(rhs.coins);
-    return ret;
+    lhs.Operations.emplace_back(lhs.coins);
+    rhs.Operations.emplace_back(rhs.coins);
+
+    return lhs;
 }
 
-bool operator<(const Wallet::Operation &lhs, const Wallet::Operation &rhs){
-    return lhs.time < rhs.time;
+Wallet& Wallet::operator*=(Wallet::coins_t n) {
+    if (n == 0) {
+        coins = 0;
+        Operations.emplace_back(coins);
+    } else {
+        Wallet::EnoughCoins((n - 1) * coins);
+
+        coins *= n;
+        LeftCoins -= (n - 1) * coins;
+        Operations.emplace_back(coins);
+    }
+
+    return *this;
 }
 
-bool operator>(const Wallet::Operation &lhs, const Wallet::Operation &rhs) {
-    return lhs.time > rhs.time;
+Wallet&& Wallet::operator*(Wallet::coins_t n) {
+    *this *= n;
+
+    return std::move(*this);
 }
 
-bool operator<=(const Wallet::Operation &lhs, const Wallet::Operation &rhs) {
-    return lhs.time <= rhs.time;
+Wallet&& operator+(Wallet&& lhs, Wallet &rhs)
+{
+    lhs += rhs;
+    return std::move(lhs);
 }
 
-bool operator>=(const Wallet::Operation &lhs, const Wallet::Operation &rhs) {
-    return lhs.time >= rhs.time;
+Wallet&& operator+(Wallet&& lhs, Wallet &&rhs)
+{
+    lhs += rhs;
+    return std::move(lhs);
 }
 
-bool operator==(const Wallet::Operation &lhs, const Wallet::Operation &rhs) {
-    return lhs.time == rhs.time;
+Wallet&& operator-(Wallet&& lhs, Wallet &rhs)
+{
+    lhs -= rhs;
+    return std::move(lhs);
 }
 
-bool operator!=(const Wallet::Operation &lhs, const Wallet::Operation &rhs) {
-    return lhs.time != rhs.time;
+Wallet&& operator-(Wallet&& lhs, Wallet &&rhs)
+{
+    lhs -= rhs;
+    return std::move(lhs);
+}
+
+Wallet&& operator*(Wallet::coins_t lhs, Wallet &rhs) {
+    rhs *= lhs;
+    return std::move(rhs);
+}
+
+Wallet&& operator*(Wallet::coins_t lhs, Wallet &&rhs) {
+    rhs *= lhs;
+    return std::move(rhs);
+}
+
+bool Wallet::Operation::operator<(const Wallet::Operation &rhs) const{
+    return this->time < rhs.time;
+}
+
+bool Wallet::Operation::operator>(const Wallet::Operation &rhs) const{
+    return this->time > rhs.time;
+}
+
+bool Wallet::Operation::operator<=(const Wallet::Operation &rhs) const{
+    return this->time <= rhs.time;
+}
+
+bool Wallet::Operation::operator>=(const Wallet::Operation &rhs) const{
+    return this->time >= rhs.time;
+}
+
+bool Wallet::Operation::operator==(const Wallet::Operation &rhs) const{
+    return this->time == rhs.time;
+}
+
+bool Wallet::Operation::operator!=(const Wallet::Operation &rhs) const{
+    return this->time != rhs.time;
 }
 
 std::string CoinsToString(Wallet::coins_t coins){
     if(coins == 0)
     {
-        return "0.00000000";
+        return "0";
     }
-    std::string res;
-    res += coins/(Wallet().UNITS) + ".";
-    std::string pom = std::to_string(coins%Wallet().UNITS);
-    std::reverse(pom.begin(),pom.end());
-    while(pom.size() < 8)
-        pom += "0";
-    std::reverse(pom.begin(),pom.end());
-    return res;
+    std::stringstream resSS;
+
+    long long satoshi = coins % Wallet::UNITS;
+
+    if (satoshi) {
+        std::string aux = std::to_string(satoshi);
+        std::reverse(aux.begin(), aux.end());
+        while(aux.size() < 8)
+            aux += "0";
+        std::reverse(aux.begin(), aux.end());
+
+        std::size_t idx = 7;
+        char digit = aux[idx];
+
+        while (digit == '0') {
+            digit = aux[idx-1];
+            aux.erase(idx--);
+        }
+
+        resSS << coins / (Wallet::UNITS) << "," << aux;
+    } else {
+        resSS << coins / (Wallet::UNITS);
+    }
+
+    return resSS.str();
 }
 
 std::ostream &operator<<(std::ostream &output, const Wallet::Operation &op) {
@@ -279,54 +347,46 @@ Wallet::~Wallet(){
     LeftCoins += coins;
 }
 
-Wallet operator*(Wallet::coins_t lhs, Wallet rhs){
-    try{
-        rhs.EnoughCoins( lhs * Wallet::UNITS );
-    }catch(NotEnoughCoins &e){
-        throw(NotEnoughCoins());
+bool Wallet::operator<(const Wallet &rhs) const{
+    return this->getUnits() < rhs.getUnits();
+}
+
+bool Wallet::operator<=(const Wallet &rhs) const{
+    return this->getUnits() <= rhs.getUnits();
+}
+
+bool Wallet::operator>(const Wallet &rhs) const{
+    return this->getUnits() > rhs.getUnits();
+}
+
+bool Wallet::operator>=(const Wallet &rhs) const{
+    return this->getUnits() >= rhs.getUnits();
+}
+
+bool Wallet::operator==(const Wallet &rhs) const{
+    return getUnits() == rhs.getUnits();
+}
+
+bool Wallet::operator!=(const Wallet &rhs) const{
+    return this->getUnits() != rhs.getUnits();
+}
+
+bool operator==(Wallet &&lhs, Wallet &&rhs) {
+    return lhs == rhs;
+}
+
+const Wallet::Operation& Wallet::operator[](Wallet::coins_t n) const {
+    if (n >= Wallet::Operations.size()) {
+        throw(InvalidInput());
+    } else {
+        return Wallet::Operations[n];
     }
-    Wallet ret(lhs * Wallet::UNITS);
-    ret.NewEvent(ret.coins);
-    return ret;
-}
-
-Wallet operator*(Wallet lhs, Wallet::coins_t rhs){
-    try{
-        lhs.EnoughCoins( rhs * Wallet::UNITS );
-    }catch(NotEnoughCoins &e){
-        throw(NotEnoughCoins());
-    }
-    Wallet ret(rhs * Wallet::UNITS);
-    ret.NewEvent(ret.coins);
-    return ret;
-}
-
-bool operator<(const Wallet &lhs, const Wallet &rhs) {
-    return lhs.getUnits() < rhs.getUnits();
-}
-
-bool operator<=(const Wallet &lhs, const Wallet &rhs) {
-    return lhs.getUnits() <= rhs.getUnits();
-}
-
-bool operator>(const Wallet &lhs, const Wallet &rhs) {
-    return lhs.getUnits() > rhs.getUnits();
-}
-
-bool operator>=(const Wallet &lhs, const Wallet &rhs) {
-    return lhs.getUnits() >= rhs.getUnits();
-}
-
-bool operator==(const Wallet &lhs, const Wallet &rhs) {
-    return lhs.getUnits() == rhs.getUnits();
-}
-
-bool operator!=(const Wallet &lhs, const Wallet &rhs) {
-    return lhs.getUnits() != rhs.getUnits();
 }
 
 std::ostream& operator<<(std::ostream &output, const Wallet &w) {
-    //TODO
+    output << "Wallet[" << CoinsToString(w.getUnits()) << " B]";
+
+    return output;
 }
 
 
