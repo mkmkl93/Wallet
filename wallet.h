@@ -1,23 +1,20 @@
 #include <string>
-#include <ctime>
 #include <vector>
 #include <exception>
 #include <chrono>
-//ullong czy llong
 
 
 class Wallet {
 
   public:
+
     typedef long long coins_t;
-    // czy da sie to dac jako private?
+
     class Operation {
         private:
 
             std::chrono::system_clock::time_point time;
-
             coins_t coinsAfterOp;
-
             std::string CoinsToString(coins_t coins);
 
         public:
@@ -53,14 +50,10 @@ class Wallet {
     Wallet(Wallet &&w1, Wallet &&w2);
     ~Wallet();
 
-    void NewEvent(coins_t coins);
-    static void EnoughCoins(coins_t coins);
-    coins_t StringToCoins(std::string str);
     static Wallet fromBinary(std::string str);
 
     coins_t getUnits() const;
     unsigned long opSize() const;
-    coins_t getCoins();
 
     Wallet &operator=(Wallet &&other);
     Wallet &operator=(const Wallet &other) = delete;
@@ -101,6 +94,11 @@ class Wallet {
     const Operation& operator[](unsigned int n) const;
 
     friend std::ostream& operator<<(std::ostream &output, const Wallet &w);
+
+    private:
+        void NewEvent(coins_t coins);
+        static void EnoughCoins(coins_t coins);
+        coins_t StringToCoins(std::string str);
 };
 
 const Wallet& Empty();

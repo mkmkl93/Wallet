@@ -1,6 +1,6 @@
 #include <algorithm>
-#include <chrono>
 #include <regex>
+#include <iostream>
 #include "wallet.h"
 
 Wallet::coins_t Wallet::LeftCoins = 21'000'000 * UNITS;
@@ -65,7 +65,6 @@ std::string CoinsToString(Wallet::coins_t coins){
     std::stringstream resSS;
 
     long long satoshi = coins % Wallet::UNITS;
-
     if (satoshi) {
         std::string aux = std::to_string(satoshi);
         std::reverse(aux.begin(), aux.end());
@@ -108,7 +107,7 @@ Wallet::Wallet(coins_t coins){
         throw(NotEnoughCoins());
     }
     this->coins = coins * UNITS;
-    NewEvent(coins);
+    NewEvent(this->coins);
     LeftCoins -= coins * UNITS;
 }
 
@@ -152,44 +151,6 @@ Wallet::~Wallet(){
     LeftCoins += coins;
 }
 
-void Wallet::NewEvent(Wallet::coins_t coins){
-    Operations.emplace_back( Operation(coins) );
-}
-
-void Wallet::EnoughCoins(Wallet::coins_t coins){
-    if(coins > Wallet::LeftCoins)
-        throw(NotEnoughCoins());
-}
-
-Wallet::coins_t Wallet::StringToCoins(std::string str){
-    unsigned int DotPos = str.find(".",0);
-    unsigned int ComaPos = str.find(",",0);
-    unsigned int delimiter = std::min(DotPos, ComaPos);
-
-    if(DotPos != str.size() || ComaPos != str.size()) {
-        for (unsigned int i = delimiter + 1; i < delimiter + 9; i++) {
-            if (i >= str.size()) {
-                str += '0';
-            } else if (str[i] < '0' || str[i] > '9') {
-                str[i] = '0';
-            }
-        }
-    }
-    coins_t count = 0;
-    try{
-        for(unsigned int i = 0; i < str.size(); i++)
-        {
-            if(str[i] < '0' || str[i] > '9')
-                continue;
-            count = count * 10 + str[i] - '0';
-            EnoughCoins(count);
-        }
-    }catch(NotEnoughCoins &e){
-        throw(NotEnoughCoins());
-    }
-    return count;
-}
-
 Wallet Wallet::fromBinary(std::string str)
 {
     static std::regex pattern(R"((1[01]{0,24})|(0))");
@@ -217,11 +178,6 @@ Wallet::coins_t Wallet::getUnits() const {
 
 unsigned long Wallet::opSize() const{
     return Operations.size();
-}
-
-Wallet::coins_t Wallet::getCoins()
-{
-    return coins;
 }
 
 Wallet& Wallet::operator=(Wallet&& other) // move assignment
@@ -374,4 +330,42 @@ const Wallet& Empty()
     const static Wallet empty = Wallet();
 
     return empty;
+}
+
+void Wallet::NewEvent(Wallet::coins_t coins){
+    Operations.emplace_back( Operation(coins) );
+}
+
+void Wallet::EnoughCoins(Wallet::coins_t coins){
+    if(coins > Wallet::LeftCoins)
+        throw(NotEnoughCoins());
+}
+
+Wallet::coins_t Wallet::StringToCoins(std::string str){
+    unsigned int DotPos = str.find(".",0);
+    unsigned int ComaPos = str.find(",",0);
+    unsigned int delimiter = std::min(DotPos, ComaPos);
+
+    if(DotPos != str.size() || ComaPos != str.size()) {
+        for (unsigned int i = delimiter + 1; i < delimiter + 9; i++) {
+            if (i >= str.size()) {
+                str += '0';
+            } else if (str[i] < '0' || str[i] > '9') {
+                str[i] = '0';
+            }
+        }
+    }
+    coins_t count = 0;
+    try{
+        for(unsigned int i = 0; i < str.size(); i++)
+        {
+            if(str[i] < '0' || str[i] > '9')
+                continue;
+            count = count * 10 + str[i] - '0';
+            EnoughCoins(count);
+        }
+    }catch(NotEnoughCoins &e){
+        throw(NotEnoughCoins());
+    }
+    return count;
 }
